@@ -1,0 +1,14 @@
+//
+//  PrefixHeader.pch
+//  WeChatPluginWrapper
+//
+//  Created by TozyZuo on 2018/3/14.
+//Copyright © 2018年 TozyZuo. All rights reserved.
+//
+
+#ifndef WeChatPluginWrapper_PrefixHeader_pch
+#define WeChatPluginWrapper_PrefixHeader_pch
+
+
+#endif
+
