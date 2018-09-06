@@ -12,11 +12,16 @@
 		BABEB9C1205922EE0083D3FA /* WeChatPluginWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = BABEB9C0205922EE0083D3FA /* WeChatPluginWrapper.m */; };
 		BABEB9C3205922EE0083D3FA /* WeChatPluginWrapperHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = BABEB9C2205922EE0083D3FA /* WeChatPluginWrapperHeader.h */; };
 		BABEB9C5205922EE0083D3FA /* PrefixHeader.pch in Headers */ = {isa = PBXBuildFile; fileRef = BABEB9C4205922EE0083D3FA /* PrefixHeader.pch */; };
-		BABEBB3320592CD20083D3FA /* WeChatPlugin_Natoto.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BABEBA4D205923270083D3FA /* WeChatPlugin_Natoto.framework */; };
-		BABEBB3420592CD20083D3FA /* WeChatPlugin_TKkk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BABEBAFE20592C270083D3FA /* WeChatPlugin_TKkk.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		BA7C464A21415A0700895D9C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BABEBAF920592C270083D3FA /* WeChatPlugin.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 528B4F911EA7383800BC6A89;
+			remoteInfo = WeChatPlugin_TKkk;
+		};
 		BABEB9B6205922EE0083D3FA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BABEB9A8205922EE0083D3FA /* Project object */;
@@ -38,20 +43,6 @@
 			remoteGlobalIDString = 528B4F921EA7383800BC6A89;
 			remoteInfo = WeChatPlugin;
 		};
-		BABEBB3520592CF30083D3FA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BABEBAF920592C270083D3FA /* WeChatPlugin.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 528B4F911EA7383800BC6A89;
-			remoteInfo = WeChatPlugin_TKkk;
-		};
-		BABEBB3720592CF30083D3FA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BABEBA47205923270083D3FA /* WeChatPlugin.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 803DAFBD1E853D3F00ADCC86;
-			remoteInfo = WeChatPlugin_Natoto;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -71,8 +62,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BABEBB3320592CD20083D3FA /* WeChatPlugin_Natoto.framework in Frameworks */,
-				BABEBB3420592CD20083D3FA /* WeChatPlugin_TKkk.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -186,8 +175,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				BABEBB3620592CF30083D3FA /* PBXTargetDependency */,
-				BABEBB3820592CF30083D3FA /* PBXTargetDependency */,
 			);
 			name = WeChatPluginWrapper;
 			productName = WeChatPluginWrapper;
@@ -203,6 +190,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BA7C464B21415A0700895D9C /* PBXTargetDependency */,
 				BABEB9B7205922EE0083D3FA /* PBXTargetDependency */,
 			);
 			name = WeChat;
@@ -297,7 +285,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "APP_NAME=\"WeChat\"\nFRAMEWORK_NAME=\"WeChatPluginWrapper\"\n\nrm -rf \"${BUILT_PRODUCTS_DIR}/${APP_NAME}.app\"\ncp -r \"${PROJECT_DIR}/${APP_NAME}.app\" \"${BUILT_PRODUCTS_DIR}/\"\n\nAPP_BUNDLE_PATH=\"${BUILT_PRODUCTS_DIR}/${APP_NAME}.app/Contents/MacOS\"\nAPP_EXECUTABLE_PATH=\"${APP_BUNDLE_PATH}/${APP_NAME}\"\n\ncp -r \"${BUILT_PRODUCTS_DIR}/${FRAMEWORK_NAME}.framework\" ${APP_BUNDLE_PATH}\n\ninsert_dylib --all-yes \"@loader_path/${FRAMEWORK_NAME}.framework/${FRAMEWORK_NAME}\" \"$APP_EXECUTABLE_PATH\" \"$APP_EXECUTABLE_PATH\"";
+			shellScript = "# App\nAPP_NAME=\"WeChat\"\nAPP_BUNDLE_PATH=\"${BUILT_PRODUCTS_DIR}/${APP_NAME}.app/Contents/MacOS\"\nAPP_EXECUTABLE_PATH=\"${APP_BUNDLE_PATH}/${APP_NAME}\"\n\nrm -rf \"${BUILT_PRODUCTS_DIR}/${APP_NAME}.app\"\ncp -r \"${PROJECT_DIR}/${APP_NAME}.app\" \"${BUILT_PRODUCTS_DIR}/\"\n\n# WeChatPluginWrapper\nFRAMEWORK_NAME=\"WeChatPluginWrapper\"\ncp -r \"${BUILT_PRODUCTS_DIR}/${FRAMEWORK_NAME}.framework\" ${APP_BUNDLE_PATH}\ninsert_dylib --all-yes \"@loader_path/${FRAMEWORK_NAME}.framework/${FRAMEWORK_NAME}\" \"$APP_EXECUTABLE_PATH\" \"$APP_EXECUTABLE_PATH\"\n\n# TK\nFRAMEWORK_NAME=\"WeChatPlugin_TKkk\"\ncp -r \"${BUILT_PRODUCTS_DIR}/${FRAMEWORK_NAME}.framework\" ${APP_BUNDLE_PATH}\ninsert_dylib --all-yes \"@loader_path/${FRAMEWORK_NAME}.framework/${FRAMEWORK_NAME}\" \"$APP_EXECUTABLE_PATH\" \"$APP_EXECUTABLE_PATH\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -313,20 +301,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		BA7C464B21415A0700895D9C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = WeChatPlugin_TKkk;
+			targetProxy = BA7C464A21415A0700895D9C /* PBXContainerItemProxy */;
+		};
 		BABEB9B7205922EE0083D3FA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = BABEB9B0205922EE0083D3FA /* WeChatPluginWrapper */;
 			targetProxy = BABEB9B6205922EE0083D3FA /* PBXContainerItemProxy */;
-		};
-		BABEBB3620592CF30083D3FA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = WeChatPlugin_TKkk;
-			targetProxy = BABEBB3520592CF30083D3FA /* PBXContainerItemProxy */;
-		};
-		BABEBB3820592CF30083D3FA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = WeChatPlugin_Natoto;
-			targetProxy = BABEBB3720592CF30083D3FA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
