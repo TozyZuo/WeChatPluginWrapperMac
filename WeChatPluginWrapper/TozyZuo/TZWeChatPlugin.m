@@ -8,60 +8,165 @@
 
 #import "TZWeChatPlugin.h"
 #import "TZWeChatHeader.h"
-//#import <WeChatPlugin_TKkk/WeChatPlugin.h>
-//#import <WeChatPlugin_TKkk/TKHelper.h>
+#import "TZWeChatPluginMenuManager.h"
+#import "TZWeChatPluginConfig.h"
+#import "NSDate+TZCategory.h"
+#import <CaptainHook/CaptainHook.h>
 #import <objc/runtime.h>
 
-static BOOL TZAddMethod(Class originalClass, SEL newMethodSelector, Class implementedClass, SEL implementedSelector)
+static NSString *TZTimeStringFromTime(NSTimeInterval time)
 {
-    Method m = class_getInstanceMethod(implementedClass, implementedSelector);
-    return class_addMethod(originalClass, newMethodSelector, method_getImplementation(m), method_getTypeEncoding(m));
+    NSDate *date = [NSDate dateWithTimeIntervalSince1970:time];
+
+    static NSDateFormatter *formatter;
+
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        formatter = [[NSDateFormatter alloc] init];
+    });
+
+    if (date.isThisYear && ![TZWeChatPluginConfig sharedConfig].displayWholeTimeEnable)
+    {
+        if (date.isToday)
+        {
+            formatter.dateFormat = @"ahh:mm:ss";
+            return [formatter stringFromDate:date];
+        }
+        else if (date.isYesterday)
+        {
+            formatter.dateFormat = @"ahh:mm:ss";
+            return [NSString stringWithFormat:@"昨天 %@", [formatter stringFromDate:date]];
+        }
+        else if ((ABS([[NSDate date] timeIntervalSinceDate:date]) < D_WEEK))
+        {
+            formatter.dateFormat = @"ahh:mm:ss";
+            NSString *time = [formatter stringFromDate:date];
+            formatter.dateFormat = @"EEEE";
+            return [NSString stringWithFormat:@"%@ %@", [formatter stringFromDate:date], time];
+        }
+        else
+        {
+            formatter.dateFormat = @"MM-dd ahh:mm:ss";
+            return [formatter stringFromDate:date];
+        }
+    } else {
+        formatter.dateFormat = @"yyyy-MM-dd ahh:mm:ss";
+        return [formatter stringFromDate:date];
+    }
+
+    return [formatter stringFromDate:date];
 }
 
-static void tz_hookMethod(Class originalClass, SEL originalSelector, Class swizzledClass, SEL swizzledSelector) {
-    Method originalMethod = class_getInstanceMethod(originalClass, originalSelector);
-    Method swizzledMethod = class_getInstanceMethod(swizzledClass, swizzledSelector);
-    if(originalMethod && swizzledMethod) {
-        method_exchangeImplementations(originalMethod, swizzledMethod);
+CHDeclareClass(MMMessageCellView)
+// 控制UI layout
+CHOptimizedMethod0(self, BOOL, MMMessageCellView, showGroupChatNickName)
+{
+    if (TZWeChatPluginConfig.sharedConfig.timeDisplayEnable) {
+        return self.messageTableItem.shouldShowGroupChatDisplayName;
+    } else {
+        return CHSuper0(MMMessageCellView, showGroupChatNickName);
     }
 }
 
-static void tz_hookClassMethod(Class originalClass, SEL originalSelector, Class swizzledClass, SEL swizzledSelector) {
-    Method originalMethod = class_getClassMethod(originalClass, originalSelector);
-    Method swizzledMethod = class_getClassMethod(swizzledClass, swizzledSelector);
-    if(originalMethod && swizzledMethod) {
-        method_exchangeImplementations(originalMethod, swizzledMethod);
+CHOptimizedMethod1(self, void, MMMessageCellView, populateWithMessage, id, arg1)
+{
+    CHSuper1(MMMessageCellView, populateWithMessage, arg1);
+
+    if (TZWeChatPluginConfig.sharedConfig.timeDisplayEnable) {
+        NSTextField *groupChatNickNameLabel = self.groupChatNickNameLabel;
+        CGFloat height = groupChatNickNameLabel.height;
+        [groupChatNickNameLabel sizeToFit];
+        groupChatNickNameLabel.height = height;
+
+        if (self.messageTableItem.isOrientationRight) {
+
+            groupChatNickNameLabel.autoresizingMask = NSViewMinXMargin | NSViewMinYMargin;
+
+            CGFloat right = self.avatarImgView.left - 10;
+            // 微信自己的setRight只是改变width
+            CGRect frame = groupChatNickNameLabel.frame;
+            frame.origin.x = groupChatNickNameLabel.left + right - groupChatNickNameLabel.right;
+            groupChatNickNameLabel.frame = frame;
+        }
     }
 }
 
-
-@implementation NSObject (TZWeChatPlugin_MMChatMessageViewController)
-
-- (void)tz_messageCellView:(id)arg1 didClickOnAvatarWithItem:(id)arg2
+CHDeclareClass(MMMessageTableItem)
+// 控制文案显示
+CHOptimizedMethod0(self, BOOL, MMMessageTableItem, shouldShowGroupChatDisplayName)
 {
-    [self tz_messageCellView:arg1 didClickOnAvatarWithItem:arg2];
+    if (TZWeChatPluginConfig.sharedConfig.timeDisplayEnable) {
+        switch (self.type) {
+            case 0: // other
+                return YES;
+            case 1: // MMTimeStampCellView
+            case 2: // MMMessageTypingCellView
+            case 3: // MMMacHelperGuideCellView
+            case 7: // StripeMessageCellView
+            default:
+                break;
+        }
+    }
+    return CHSuper0(MMMessageTableItem, shouldShowGroupChatDisplayName);
 }
 
-- (id)MMMessageTableItem_init
+CHDeclareClass(MessageData)
+CHOptimizedMethod0(self, NSString *, MessageData, groupChatSenderDisplayName)
 {
-    return [self MMMessageTableItem_init];
+    NSString *str = CHSuper0(MessageData, groupChatSenderDisplayName);
+    if (TZWeChatPluginConfig.sharedConfig.timeDisplayEnable) {
+        return [str stringByAppendingFormat:@" %@", TZTimeStringFromTime(self.msgCreateTime)];
+    }
+    return str;
 }
 
-@end
-
-
-
-@implementation NSObject (TZWeChatPlugin)
-
-+ (void)TZWeChatPluginInit
+CHDeclareClass(MMTimeStampCellView)
+CHOptimizedClassMethod2(self, double, MMTimeStampCellView, cellHeightWithMessage, id, arg1, constrainedToWidth, double, arg2)
 {
-    tz_hookMethod(objc_getClass("MMChatMessageViewController"), @selector(messageCellView:didClickOnAvatarWithItem:), [self class], @selector(tz_messageCellView:didClickOnAvatarWithItem:));
-//    TZAddMethod(objc_getClass("MMChatMessageViewController"), @selector(messageCellView:didClickOnAvatarWithItem:), [self class], @selector(tz_messageCellView:didClickOnAvatarWithItem:));
+    if (TZWeChatPluginConfig.sharedConfig.timeDisplayEnable &&
+        TZWeChatPluginConfig.sharedConfig.hideWeChatTimeEnable)
+    {
+        return -7;
+    }
+    return CHSuper2(MMTimeStampCellView, cellHeightWithMessage, arg1, constrainedToWidth, arg2);
 }
 
-@end
-
-static void __attribute__((constructor)) initialize(void)
+CHDeclareClass(AppDelegate)
+CHOptimizedMethod1(self, void, AppDelegate, applicationDidFinishLaunching, id, arg1)
 {
-    [NSObject TZWeChatPluginInit];
+    CHSuper1(AppDelegate, applicationDidFinishLaunching, arg1);
+    [[TZWeChatPluginMenuManager shareManager] configMenus];
+}
+
+CHConstructor {
+    CHLoadLateClass(AppDelegate);
+    CHHook1(AppDelegate, applicationDidFinishLaunching);
+
+    CHLoadLateClass(MessageData);
+    CHHook0(MessageData, groupChatSenderDisplayName);
+
+    CHLoadLateClass(MMMessageTableItem);
+    CHHook0(MMMessageTableItem, shouldShowGroupChatDisplayName);
+
+    CHLoadLateClass(MMMessageCellView);
+    CHHook0(MMMessageCellView, showGroupChatNickName);
+    CHHook1(MMMessageCellView, populateWithMessage);
+//    CHHook0(MMMessageCellView, updateGroupChatNickName); 这个看似不错实际不行
+
+    CHLoadLateClass(MMTimeStampCellView);
+    CHClassHook2(MMTimeStampCellView, cellHeightWithMessage, constrainedToWidth);
+}
+
+#pragma mark - auto
+
+
+CHDeclareClass(MMChatMessageViewController)
+CHOptimizedMethod1(self, CGRect, MMChatMessageViewController, visibleMessageRectInCurrentChat, id, arg1)
+{
+    return CHSuper1(MMChatMessageViewController, visibleMessageRectInCurrentChat, arg1);
+}
+
+CHConstructor {
+    CHLoadLateClass(MMChatMessageViewController);
+    CHHook1(MMChatMessageViewController, visibleMessageRectInCurrentChat);
 }

@@ -11,6 +11,9 @@
 
 #import <Cocoa/Cocoa.h>
 
+@interface MMTableView : NSTableView
+@end
+
 #pragma mark - TKkk
 
 FOUNDATION_EXPORT double WeChatPluginVersionNumber;
@@ -80,9 +83,11 @@ FOUNDATION_EXPORT const unsigned char WeChatPluginVersionString[];
 @property(nonatomic, setter=SetNewMsgId:) long long newMsgId;
 @end
 
+@class MMChatMessageViewController;
 @interface MMChatsViewController : NSViewController <NSTableViewDataSource, NSTableViewDelegate>
 @property(nonatomic) __weak NSTableView *tableView;
 @property(retain, nonatomic) MMBrandChatsViewController *brandChatsViewController;
+@property(readonly, nonatomic) __weak MMChatMessageViewController *chatMessageViewController;
 @end
 
 @interface WeChat : NSObject
@@ -226,10 +231,18 @@ FOUNDATION_EXPORT const unsigned char WeChatPluginVersionString[];
 @end
 
 @interface MMChatMessageViewController : NSViewController
+@property(nonatomic) __weak MMTableView *messageTableView;
 @end
 
+@class MMTableDataSource;
 @interface MMMessageTableItem : NSObject
 @property(retain, nonatomic) MessageData *message;
+@property(nonatomic) unsigned int messageCreateTime;
+@property(nonatomic) int type;
+@property(nonatomic) BOOL shouldShowGroupChatDisplayName;
+@property(nonatomic) __weak MMTableDataSource *tableDataSource;
+- (BOOL)isOrientationRight;
+- (void)reloadDataForRowView;
 @end
 
 @interface MMStickerMessageCellView : NSObject
@@ -418,8 +431,8 @@ FOUNDATION_EXPORT const unsigned char WeChatPluginVersionString[];
 @property(retain, nonatomic) NSMutableArray *groupContactSearchResults;
 @end
 
+#pragma mark - TozyZuo
 
-@class MMTableView;
 @interface MMTableDataSource : NSObject
 {
     MMTableView *_messageTableView;
@@ -430,6 +443,48 @@ FOUNDATION_EXPORT const unsigned char WeChatPluginVersionString[];
 @property(nonatomic) __weak MMTableView *messageTableView; // @synthesize messageTableView=_messageTableView;
 - (long long)indexOfTableItem:(id)arg1;
 
+@end
+
+@interface MMMessageCellView : NSTableCellView
+@property(nonatomic) BOOL showGroupChatNickName;
+@property(retain, nonatomic) NSTextField *groupChatNickNameLabel;
+@property(retain, nonatomic) NSView/* MMMessageCellAvatarView */ *avatarImgView;
+@property(retain, nonatomic) MMMessageTableItem *messageTableItem;
+- (void)populateWithMessage:(id)message;
+- (void)updateGroupChatNickName;
+@end
+
+@interface NSView (Ext)
++ (id)rootDesc;
++ (id)recursiveDescriptionOfView:(id)arg1 level:(long long)arg2;
+- (BOOL)isMouseReallyInside;
+- (id)firstSubviewOfClass:(id)arg1;
+- (id)rootDescWithLevel6;
+- (id)rootDescWithLevel5;
+- (id)rootDescWithLevel4;
+- (id)rootDescWithLevel3;
+- (id)rootDescWithLevel2;
+- (id)rootDescWithLevel1;
+- (id)rootDescWithLevel:(long long)arg1;
+- (id)debugDescription;
+- (id)rootDescWithLevel;
+- (id)selfDesc;
+- (id)screenCacheImageForViewWithRect:(struct CGRect)arg1;
+- (id)screenCacheImageForView;
+- (id)imageWithSubviews;
+@property double cornerRadius;
+@property double bottom;
+@property double top;
+@property double right;
+@property double left;
+@property double height;
+@property double width;
+@property double y;
+@property double x;
+@end
+
+@interface MMTimeStampCellView : MMMessageCellView
++ (double)cellHeightWithMessage:(id)arg1 constrainedToWidth:(double)arg2;
 @end
 
 #endif /* TZWeChatHeader_h */
