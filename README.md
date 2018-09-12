@@ -3,21 +3,21 @@
 
 感谢[@TKkk-iOSer/WeChatPlugin-MacOS](https://github.com/TKkk-iOSer/WeChatPlugin-MacOS)的功能支持。
 
-感谢[@Natoto/WeChatPlugin](https://github.com/Natoto/WeChatPlugin)的功能支持。
+<!--感谢[@Natoto/WeChatPlugin](https://github.com/Natoto/WeChatPlugin)的功能支持。-->
 
 ---
 
-编译方法：
+<!--编译方法：
 
 1. build 两个 WeChatPlugin target
 2. build WeChatPluginWrapper target
 3. run app target
 
----
+----->
 
 目前已集成如下pod
 
-### TKkk-WeChatPlugin（v1.5.1）
+### TKkk-WeChatPlugin（v1.7.1）
 功能：
 
 * 消息自动回复
@@ -33,10 +33,13 @@
 * 聊天窗口表情包复制 & 存储
 * 小助手检测更新提醒
 
-### Natoto-WeChatPlugin
+<!--### Natoto-WeChatPlugin
 功能：
 
-* 朋友圈
+* 朋友圈-->
+
+### 添加功能
+* 每条消息展示消息时间
 
 ## License
 MIT
