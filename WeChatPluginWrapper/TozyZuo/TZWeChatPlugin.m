@@ -157,16 +157,45 @@ CHConstructor {
     CHClassHook2(MMTimeStampCellView, cellHeightWithMessage, constrainedToWidth);
 }
 
-#pragma mark - auto
+#pragma mark - AutoTranslateVoice
 
-
-CHDeclareClass(MMChatMessageViewController)
-CHOptimizedMethod1(self, CGRect, MMChatMessageViewController, visibleMessageRectInCurrentChat, id, arg1)
+CHDeclareClass(MMVoiceMessageCellView)
+CHOptimizedMethod1(self, void, MMVoiceMessageCellView, populateWithMessage, MMMessageTableItem *, item)
 {
-    return CHSuper1(MMChatMessageViewController, visibleMessageRectInCurrentChat, arg1);
+    CHSuper1(MMVoiceMessageCellView, populateWithMessage, item);
+
+    MessageData *message = item.message;
+    if (TZWeChatPluginConfig.sharedConfig.autoTranslateVoiceEnable &&
+        (TZWeChatPluginConfig.sharedConfig.translateMyselfVoiceEnable ||
+         !message.isSendFromSelf) && message.m_uiVoiceToTextStatus == 0)
+        /*
+         m_uiVoiceToTextStatus
+            0 默认态
+            1 转换中，loading
+            2 转换成功
+            3 转换失败
+         */
+    {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self contextMenuTranscribe];
+        });
+    }
 }
 
 CHConstructor {
-    CHLoadLateClass(MMChatMessageViewController);
-    CHHook1(MMChatMessageViewController, visibleMessageRectInCurrentChat);
+    CHLoadLateClass(MMVoiceMessageCellView);
+    CHHook1(MMVoiceMessageCellView, populateWithMessage);
+}
+
+#pragma mark - log
+
+CHDeclareClass(MMLogger)
+CHOptimizedClassMethod6(self, void, MMLogger, logWithMMLogLevel, int, arg1, module, const char *, arg2, file, const char *, arg3, line, int, arg4, func, const char *, arg5, message, id, arg6)
+{
+    NSLog(@"MMLog [%s] %s %s %@", arg2, arg3, arg5, arg6);
+}
+
+CHConstructor {
+    CHLoadLateClass(MMLogger);
+//    CHClassHook6(MMLogger, logWithMMLogLevel, module, file, line, func, message);
 }

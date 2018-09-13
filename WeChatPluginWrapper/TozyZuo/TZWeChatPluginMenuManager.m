@@ -64,9 +64,9 @@
     [TozyZuoMenu addItems:@[self.timeDisplayItem,
                             self.displayWholeTimeItem,
                             self.hideWeChatTimeItem,
-//                            [NSMenuItem separatorItem],
-//                            self.autoTranslateVoiceItem,
-//                            self.translateMyselfVoiceItem,
+                            [NSMenuItem separatorItem],
+                            self.autoTranslateVoiceItem,
+                            self.translateMyselfVoiceItem,
                             ]];
 
     NSMenuItem *TozyZuoItem = [[NSMenuItem alloc] init];
@@ -139,11 +139,29 @@
     BOOL enable = item.state;
     TZWeChatPluginConfig.sharedConfig.autoTranslateVoiceEnable = enable;
     self.translateMyselfVoiceItem.enabled = enable;
+
+    if (enable) {
+        MMTableView *tableView = [[objc_getClass("WeChat") sharedInstance] chatsViewController].chatMessageViewController.messageTableView;
+        NSIndexSet *rowIndexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, tableView.numberOfRows)];
+        [tableView beginUpdates];
+        [tableView reloadDataForRowIndexes:rowIndexSet columnIndexes:[NSIndexSet indexSetWithIndex:0]];
+        [tableView endUpdates];
+    }
 }
 
 - (void)translateMyselfVoiceEnableAction:(NSMenuItem *)item
 {
+    item.state = !item.state;
+    BOOL enable = item.state;
+    TZWeChatPluginConfig.sharedConfig.translateMyselfVoiceEnable = enable;
 
+    if (enable) {
+        MMTableView *tableView = [[objc_getClass("WeChat") sharedInstance] chatsViewController].chatMessageViewController.messageTableView;
+        NSIndexSet *rowIndexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, tableView.numberOfRows)];
+        [tableView beginUpdates];
+        [tableView reloadDataForRowIndexes:rowIndexSet columnIndexes:[NSIndexSet indexSetWithIndex:0]];
+        [tableView endUpdates];
+    }
 }
 
 @end

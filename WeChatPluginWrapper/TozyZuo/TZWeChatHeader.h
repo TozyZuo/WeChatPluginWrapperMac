@@ -14,6 +14,12 @@
 @interface MMTableView : NSTableView
 @end
 
+@interface MMTableDataSource : NSObject
+@property(retain, nonatomic) NSMutableArray *items;
+@property(nonatomic) __weak MMTableView *messageTableView;
+- (long long)indexOfTableItem:(id)arg1;
+@end
+
 #pragma mark - TKkk
 
 FOUNDATION_EXPORT double WeChatPluginVersionNumber;
@@ -51,6 +57,7 @@ FOUNDATION_EXPORT const unsigned char WeChatPluginVersionString[];
 - (void)onLogOut;
 @end
 
+@class MessageData;
 @interface MessageService : NSObject
 - (void)onRevokeMsg:(id)arg1;
 - (void)OnSyncBatchAddMsgs:(NSArray *)arg1 isFirstSync:(BOOL)arg2;
@@ -63,6 +70,7 @@ FOUNDATION_EXPORT const unsigned char WeChatPluginVersionString[];
 - (BOOL)hasMsgInChat:(id)arg1;
 - (id)GetMsgListWithChatName:(id)arg1 fromLocalId:(unsigned int)arg2 limitCnt:(NSInteger)arg3 hasMore:(char *)arg4 sortAscend:(BOOL)arg5;
 - (id)GetMsgListWithChatName:(id)arg1 fromCreateTime:(unsigned int)arg2 limitCnt:(NSInteger)arg3 hasMore:(char *)arg4 sortAscend:(BOOL)arg5;
+- (BOOL)updateVoiceTextInDBWithMessage:(MessageData *)message;
 @end
 
 @interface MMServiceCenter : NSObject
@@ -149,6 +157,7 @@ FOUNDATION_EXPORT const unsigned char WeChatPluginVersionString[];
 @property(nonatomic) long long mesSvrID;
 @property(retain, nonatomic) NSString *msgVoiceText;
 @property(copy, nonatomic) NSString *m_nsEmoticonMD5;
+@property(nonatomic) unsigned int m_uiVoiceToTextStatus;
 - (BOOL)isChatRoomMessage;
 - (NSString *)groupChatSenderDisplayName;
 - (id)getRealMessageContent;
@@ -230,11 +239,14 @@ FOUNDATION_EXPORT const unsigned char WeChatPluginVersionString[];
 - (void)userNotificationCenter:(id)arg1 didActivateNotification:(id)arg2;
 @end
 
-@interface MMChatMessageViewController : NSViewController
-@property(nonatomic) __weak MMTableView *messageTableView;
+@interface MMChatMessageDataSource : MMTableDataSource
 @end
 
-@class MMTableDataSource;
+@interface MMChatMessageViewController : NSViewController
+@property(nonatomic) __weak MMTableView *messageTableView;
+@property(retain, nonatomic) MMChatMessageDataSource *messageDataSource;
+@end
+
 @interface MMMessageTableItem : NSObject
 @property(retain, nonatomic) MessageData *message;
 @property(nonatomic) unsigned int messageCreateTime;
@@ -433,18 +445,6 @@ FOUNDATION_EXPORT const unsigned char WeChatPluginVersionString[];
 
 #pragma mark - TozyZuo
 
-@interface MMTableDataSource : NSObject
-{
-    MMTableView *_messageTableView;
-    NSMutableArray *_items;
-}
-
-@property(retain, nonatomic) NSMutableArray *items; // @synthesize items=_items;
-@property(nonatomic) __weak MMTableView *messageTableView; // @synthesize messageTableView=_messageTableView;
-- (long long)indexOfTableItem:(id)arg1;
-
-@end
-
 @interface MMMessageCellView : NSTableCellView
 @property(nonatomic) BOOL showGroupChatNickName;
 @property(retain, nonatomic) NSTextField *groupChatNickNameLabel;
@@ -486,5 +486,17 @@ FOUNDATION_EXPORT const unsigned char WeChatPluginVersionString[];
 @interface MMTimeStampCellView : MMMessageCellView
 + (double)cellHeightWithMessage:(id)arg1 constrainedToWidth:(double)arg2;
 @end
+
+@interface MMVoiceMessageCellView : MMMessageCellView
+@property(nonatomic) BOOL isTranslatingVoiceToText;
+- (void)contextMenuTranscribe;
+- (void)contextMenuWipeOutText;
+- (void)prepareForReuse;
+@end
+
+@interface MMLogger : NSObject
++ (void)logWithMMLogLevel:(int)arg1 module:(const char *)arg2 file:(const char *)arg3 line:(int)arg4 func:(const char *)arg5 message:(id)arg6;
+@end
+
 
 #endif /* TZWeChatHeader_h */
