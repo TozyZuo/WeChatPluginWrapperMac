@@ -7,14 +7,6 @@
 
 ---
 
-<!--编译方法：
-
-1. build 两个 WeChatPlugin target
-2. build WeChatPluginWrapper target
-3. run app target
-
------>
-
 目前已集成如下pod
 
 ### TKkk-WeChatPlugin（v1.7.1）
@@ -40,6 +32,7 @@
 
 ### 添加功能
 * 每条消息展示消息时间
+* 语音自动转文字
 
 ## License
 MIT
