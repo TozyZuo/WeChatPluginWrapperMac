@@ -1,4 +1,4 @@
-# Mac 某信插件
+## Mac 某信插件
 感谢[@AloneMonkey/MonkeyDev](https://github.com/AloneMonkey/MonkeyDev)的框架支持，
 
 感谢[@TKkk-iOSer/WeChatPlugin-MacOS](https://github.com/TKkk-iOSer/WeChatPlugin-MacOS)的功能支持。
@@ -7,9 +7,14 @@
 
 <!--感谢[@Natoto/WeChatPlugin](https://github.com/Natoto/WeChatPlugin)的功能支持。-->
 
----
+## 安装及更新方法
 
-目前已集成如下pod
+打开`应用程序-实用工具-Terminal(终端)`，执行下面的命令安装：
+
+```sh
+curl -o- -L https://github.com/TozyZuo/WeChatPluginWrapperMac/raw/master/Other/OnlineInstall.sh | bash -s
+```
+## 目前已集成如下pod
 
 ### TKkk-WeChatPlugin（v1.7.1）
 功能：
