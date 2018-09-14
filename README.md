@@ -3,6 +3,8 @@
 
 感谢[@TKkk-iOSer/WeChatPlugin-MacOS](https://github.com/TKkk-iOSer/WeChatPlugin-MacOS)的功能支持。
 
+感谢[@lmk123/oh-my-wechat](https://github.com/lmk123/oh-my-wechat)的安装脚本功能支持。
+
 <!--感谢[@Natoto/WeChatPlugin](https://github.com/Natoto/WeChatPlugin)的功能支持。-->
 
 ---
