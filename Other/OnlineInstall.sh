@@ -19,29 +19,16 @@ fi
 
 version_file=${wechat_path}/Contents/MacOS/version
 
-# 获取当前版本
-if [ -f $version_file ]; then
-  current_version=$(cat $version_file)
-  current_version=${current_version//$'\r'/}
-  echo 当前插件版本为 v${current_version}
-fi
 
-if [ -z $latest_version ]; then
-  echo 正在检查新版本……
-  latest_version=$(curl -I -s https://github.com/TozyZuo/WeChatPluginWrapperMac/releases/latest | grep Location | sed -n 's/.*\/v\(.*\)/\1/p')
-  if [ -z "$latest_version" ]; then
-    echo 检查新版本时失败
+openwechat() {
+  _isWeChatRunning=$(ps aux | grep [W]eChat.app | wc -l)
+  if [ -n "$installed" ] && [ $_isWeChatRunning != "0" ]; then
+    echo 检测到微信正在运行，请重启微信让插件生效。
   else
-    latest_version=${latest_version//$'\r'/}
-    echo 最新插件版本为 v${latest_version}
-    if [ "$current_version" != $latest_version ]; then
-      echo 发现新版本 v${latest_version}。
-      install_version $latest_version
-    else
-      echo 当前已是最新版本。
-    fi
+    echo 打开微信
+    open $wechat_path
   fi
-fi
+}
 
 # 安装插件
 install_version() {
@@ -69,12 +56,25 @@ install_version() {
   openwechat
 }
 
-openwechat() {
-  _isWeChatRunning=$(ps aux | grep [W]eChat.app | wc -l)
-  if [ -n "$installed" ] && [ $_isWeChatRunning != "0" ]; then
-    echo 检测到微信正在运行，请重启微信让插件生效。
+# 获取当前版本
+if [ -f $version_file ]; then
+  current_version=$(cat $version_file)
+  current_version=${current_version//$'\r'/}
+  echo 当前插件版本为 v${current_version}
+fi
+
+if [ -z $latest_version ]; then
+  echo 正在检查新版本……
+  latest_version=$(curl -I -s https://github.com/TozyZuo/WeChatPluginWrapperMac/releases/latest | grep Location | sed -n 's/.*\/v\(.*\)/\1/p')
+  if [ -z "$latest_version" ]; then
+    echo 检查新版本时失败
   else
-    echo 打开微信
-    open $wechat_path
+    latest_version=${latest_version//$'\r'/}
+    echo 最新插件版本为 v${latest_version}
+    if [ "$current_version" != $latest_version ]; then
+      install_version $latest_version
+    else
+      echo 当前已是最新版本。
+    fi
   fi
-}
+fi
