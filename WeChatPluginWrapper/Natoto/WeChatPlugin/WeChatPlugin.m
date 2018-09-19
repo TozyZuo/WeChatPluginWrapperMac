@@ -17,7 +17,7 @@
 @implementation NSBundle (WeChatPlugin)
 
 + (instancetype)pluginBundle {
-    return [NSBundle bundleWithIdentifier:@"com.corbin.WeChatPlugin"];
+    return [NSBundle bundleWithIdentifier:@"com.tozy.WeChatPluginWrapper"];
 }
 
 @end
@@ -116,7 +116,7 @@
 @end
 
 static void __attribute__((constructor)) initialize(void) {
-    NSLog(@"++++++++ WeChatPlugin loaded ++++++++");
+    NSLog(@"++++++++ Natoto loaded ++++++++");
     
     CBRegisterClass(MMContactsViewController, MMTimeLineMainViewController);
     

@@ -12,7 +12,9 @@
 
 
 @interface MMTimeLineMgr () <MMCGIDelegate>
-
+{
+    void *_dylibHandler;
+}
 @property (nonatomic, assign, getter=isRequesting) BOOL requesting;
 @property (nonatomic, strong) NSString *firstPageMd5;
 @property (nonatomic, strong) SKBuiltinBuffer_t *session;
@@ -21,6 +23,27 @@
 @end
 
 @implementation MMTimeLineMgr
+
+- (void)dealloc
+{
+    dlclose(_dylibHandler);
+}
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        NSLog(@"\n===Start===\n");
+        NSString * dylibName = @"libWC";
+        NSString * path = [[NSBundle pluginBundle] pathForResource:dylibName ofType:@"dylib"];
+        _dylibHandler = dlopen(path.UTF8String, RTLD_NOW);
+        if (!_dylibHandler){
+            NSLog(@"dlopen failed ，error %s", dlerror());
+            return nil;
+        };
+    }
+    return self;
+}
 
 #pragma mark - Network
 
@@ -122,7 +145,7 @@
 
 @end
 
-
+/*
 @interface PBCodedOutputStream : NSObject
 {
     NSMutableData *buffer;
@@ -324,7 +347,7 @@ int wcp_computeUInt32Size(int arg0, int arg1) {
 
 
 static void __attribute__((constructor)) initialize(void) {
-    NSLog(@"++++++++ WeChatPlugin loaded ++++++++");
+    NSLog(@"++++++++ Natoto_manager loaded ++++++++");
 
 
 }
@@ -642,3 +665,4 @@ static void __attribute__((constructor)) initialize(void) {
     return [self _ParseResponseData:arg1 buffer:arg2 servIdBuf:arg3];
 }
 @end
+*/
