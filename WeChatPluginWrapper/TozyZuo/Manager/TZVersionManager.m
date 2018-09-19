@@ -14,14 +14,6 @@
 #import <objc/runtime.h>
 
 
-@interface TZVersionManager ()
-<NSApplicationDelegate>
-@property (nonatomic, readonly) NSURL *wrapperPluginURL;
-@property (nonatomic, readonly) NSURL *TKPluginURL;
-@property (class, readonly) id TKCheckVersionFinishBlock;
-- (void)showUpdateWithMessage:(NSString *)message completion:(void (^)(NSModalResponse respose))completion;
-@end
-
 #pragma mark - Declare TK
 
 @interface NSObject (WeChatHook)
@@ -29,7 +21,8 @@
 @end
 
 @interface TKVersionManager : NSObject
-- (void)checkVersionFinish:(id)finish;
++ (instancetype)shareManager;
+- (void)checkVersionFinish:(void (^)(NSUInteger status, NSString *message))finish;
 @end
 
 @interface TKRemoteControlManager : NSObject
@@ -44,21 +37,16 @@ CHOptimizedClassMethod0(self, void, NSObject, checkPluginVersion)
 
 }
 
-CHDeclareClass(TKVersionManager)
-CHOptimizedMethod1(self, void, TKVersionManager, checkVersionFinish, id, arg1)
-{
-    CHSuper1(TKVersionManager, checkVersionFinish, TZVersionManager.TKCheckVersionFinishBlock);
-}
-
 CHConstructor {
     CHLoadLateClass(NSObject);
     CHClassHook0(NSObject, checkPluginVersion);
-
-    CHLoadLateClass(TKVersionManager);
-    CHHook1(TKVersionManager, checkVersionFinish);
 }
 
 #pragma mark -
+
+@interface TZVersionManager ()
+<NSApplicationDelegate>
+@end
 
 @implementation TZVersionManager
 
@@ -69,27 +57,58 @@ CHConstructor {
 
 #pragma mark Private
 
-+ (id)TKCheckVersionFinishBlock
+- (void)checkUpdates
 {
-    return ^(NSUInteger status, NSString *message)
-    {
-        if (status == 1) {
-            [TZVersionManager.sharedManager showUpdateWithMessage:[@"微信小助手更新:\n\n" stringByAppendingString:message] completion:^(NSModalResponse respose)
-            {
-                if (respose == NSAlertFirstButtonReturn) {
-                    [TZDownloadWindowController.sharedWindowController downloadWithPluginType:TZPluginTypeTKkk completion:^(NSString * _Nonnull filePath)
-                     {
-                         [self.sharedManager downloadCompletedWithType:TZPluginTypeTKkk filePath:filePath];
-                     }];
-                } else if (respose == NSAlertSecondButtonReturn) {
-                    TZConfigManager.sharedManager.forbidCheckingUpdate = YES;
+    [self checkWrapperUpdateWithCompletion:^(BOOL hasUpdate, NSString *message) {
+        if (hasUpdate) {
+            [self showUpdateMessage:message type:TZPluginTypeWrapper];
+        } else {
+            [self checkTKUpdateWithCompletion:^(BOOL hasUpdate, NSString *message) {
+                if (hasUpdate) {
+                    [self showUpdateMessage:[@"微信小助手更新:\n\n" stringByAppendingString:message] type:TZPluginTypeTKkk];
+                } else {
+                    // TODO other plugin
                 }
             }];
         }
-    };
+    }];
 }
 
-- (void)showUpdateWithMessage:(NSString *)message completion:(void (^)(NSModalResponse respose))completion
+- (void)checkWrapperUpdateWithCompletion:(void (^)(BOOL, NSString *))completion
+{
+    if (completion) {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            NSDictionary *localInfo = TZConfigManager.sharedManager.localInfoPlist;
+            NSDictionary *remoteInfo = TZConfigManager.sharedManager.remoteInfoPlist;
+            NSString *localBundle = localInfo[@"CFBundleShortVersionString"];
+            NSString *remoteBundle = remoteInfo[@"CFBundleShortVersionString"];
+
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (![localBundle isEqualToString:remoteBundle]) {
+                    completion(YES, remoteInfo[@"versionInfo"]);
+                } else {
+                    completion(NO, nil);
+                }
+            });
+        });
+    }
+}
+
+- (void)checkTKUpdateWithCompletion:(void (^)(BOOL, NSString *))completion
+{
+    if (completion) {
+        [[objc_getClass("TKVersionManager") shareManager] checkVersionFinish:^(NSUInteger status, NSString *message)
+         {
+             if (status == 1) {
+                 completion(YES, message);
+             } else {
+                 completion(NO, nil);
+             }
+         }];
+    }
+}
+
+- (void)showUpdateMessage:(NSString *)message type:(TZPluginType)type
 {
     NSAlert *alert = [[NSAlert alloc] init];
     [alert addButtonWithTitle:@"安装更新"];
@@ -98,38 +117,15 @@ CHConstructor {
     [alert setMessageText:@"检测到新版本！主要内容：👇"];
     [alert setInformativeText:message ?: @""];
     NSModalResponse respose = [alert runModal];
-    if (completion) {
-        completion(respose);
+
+    if (respose == NSAlertFirstButtonReturn) {
+        [TZDownloadWindowController.sharedWindowController downloadWithPluginType:type completion:^(NSString * _Nonnull filePath)
+         {
+             [self downloadCompletedWithType:type filePath:filePath];
+         }];
+    } else if (respose == NSAlertSecondButtonReturn) {
+        TZConfigManager.sharedManager.forbidCheckingUpdate = YES;
     }
-}
-
-- (void)checkUpdate
-{
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSDictionary *localInfo = TZConfigManager.sharedManager.localInfoPlist;
-        NSDictionary *remoteInfo = TZConfigManager.sharedManager.remoteInfoPlist;
-        NSString *localBundle = localInfo[@"CFBundleShortVersionString"];
-        NSString *remoteBundle = remoteInfo[@"CFBundleShortVersionString"];
-
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if (![localBundle isEqualToString:remoteBundle]) {
-                [self showUpdateWithMessage:remoteInfo[@"versionInfo"] completion:^(NSModalResponse respose)
-                 {
-                     if (respose == NSAlertFirstButtonReturn) {
-                         [TZDownloadWindowController.sharedWindowController downloadWithPluginType:TZPluginTypeWrapper completion:^(NSString * _Nonnull filePath)
-                          {
-                              [self downloadCompletedWithType:TZPluginTypeWrapper filePath:filePath];
-                          }];
-                     } else if (respose == NSAlertSecondButtonReturn) {
-                         TZConfigManager.sharedManager.forbidCheckingUpdate = YES;
-                     }
-                 }];
-            } else {
-                // TK
-                CHSuper0(NSObject, checkPluginVersion);
-            }
-        });
-    });
 }
 
 - (void)downloadCompletedWithType:(TZPluginType)type filePath:(NSString *)filePath
@@ -155,7 +151,7 @@ CHConstructor {
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
     if (!TZConfigManager.sharedManager.forbidCheckingUpdate) {
-        [self checkUpdate];
+        [self checkUpdates];
     }
 }
 
