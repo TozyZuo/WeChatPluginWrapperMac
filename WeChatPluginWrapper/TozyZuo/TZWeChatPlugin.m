@@ -8,8 +8,8 @@
 
 #import "TZWeChatPlugin.h"
 #import "TZWeChatHeader.h"
-#import "TZWeChatPluginMenuManager.h"
-#import "TZWeChatPluginConfig.h"
+#import "TZPluginManager.h"
+#import "TZConfigManager.h"
 #import "NSDate+TZCategory.h"
 #import <CaptainHook/CaptainHook.h>
 #import <objc/runtime.h>
@@ -25,7 +25,7 @@ static NSString *TZTimeStringFromTime(NSTimeInterval time)
         formatter = [[NSDateFormatter alloc] init];
     });
 
-    if (date.isThisYear && ![TZWeChatPluginConfig sharedConfig].displayWholeTimeEnable)
+    if (date.isThisYear && !TZConfigManager.sharedManager.displayWholeTimeEnable)
     {
         if (date.isToday)
         {
@@ -61,7 +61,7 @@ CHDeclareClass(MMMessageCellView)
 // 控制UI layout
 CHOptimizedMethod0(self, BOOL, MMMessageCellView, showGroupChatNickName)
 {
-    if (TZWeChatPluginConfig.sharedConfig.timeDisplayEnable) {
+    if (TZConfigManager.sharedManager.timeDisplayEnable) {
         return self.messageTableItem.shouldShowGroupChatDisplayName;
     } else {
         return CHSuper0(MMMessageCellView, showGroupChatNickName);
@@ -72,7 +72,7 @@ CHOptimizedMethod1(self, void, MMMessageCellView, populateWithMessage, id, arg1)
 {
     CHSuper1(MMMessageCellView, populateWithMessage, arg1);
 
-    if (TZWeChatPluginConfig.sharedConfig.timeDisplayEnable) {
+    if (TZConfigManager.sharedManager.timeDisplayEnable) {
         NSTextField *groupChatNickNameLabel = self.groupChatNickNameLabel;
         CGFloat height = groupChatNickNameLabel.height;
         [groupChatNickNameLabel sizeToFit];
@@ -95,7 +95,7 @@ CHDeclareClass(MMMessageTableItem)
 // 控制文案显示
 CHOptimizedMethod0(self, BOOL, MMMessageTableItem, shouldShowGroupChatDisplayName)
 {
-    if (TZWeChatPluginConfig.sharedConfig.timeDisplayEnable) {
+    if (TZConfigManager.sharedManager.timeDisplayEnable) {
         switch (self.type) {
             case 0: // other
                 return YES;
@@ -114,7 +114,7 @@ CHDeclareClass(MessageData)
 CHOptimizedMethod0(self, NSString *, MessageData, groupChatSenderDisplayName)
 {
     NSString *str = CHSuper0(MessageData, groupChatSenderDisplayName);
-    if (TZWeChatPluginConfig.sharedConfig.timeDisplayEnable) {
+    if (TZConfigManager.sharedManager.timeDisplayEnable) {
         return [str stringByAppendingFormat:@" %@", TZTimeStringFromTime(self.msgCreateTime)];
     }
     return str;
@@ -123,25 +123,15 @@ CHOptimizedMethod0(self, NSString *, MessageData, groupChatSenderDisplayName)
 CHDeclareClass(MMTimeStampCellView)
 CHOptimizedClassMethod2(self, double, MMTimeStampCellView, cellHeightWithMessage, id, arg1, constrainedToWidth, double, arg2)
 {
-    if (TZWeChatPluginConfig.sharedConfig.timeDisplayEnable &&
-        TZWeChatPluginConfig.sharedConfig.hideWeChatTimeEnable)
+    if (TZConfigManager.sharedManager.timeDisplayEnable &&
+        TZConfigManager.sharedManager.hideWeChatTimeEnable)
     {
         return -7;
     }
     return CHSuper2(MMTimeStampCellView, cellHeightWithMessage, arg1, constrainedToWidth, arg2);
 }
 
-CHDeclareClass(AppDelegate)
-CHOptimizedMethod1(self, void, AppDelegate, applicationDidFinishLaunching, id, arg1)
-{
-    CHSuper1(AppDelegate, applicationDidFinishLaunching, arg1);
-    [[TZWeChatPluginMenuManager shareManager] configMenus];
-}
-
 CHConstructor {
-    CHLoadLateClass(AppDelegate);
-    CHHook1(AppDelegate, applicationDidFinishLaunching);
-
     CHLoadLateClass(MessageData);
     CHHook0(MessageData, groupChatSenderDisplayName);
 
@@ -165,8 +155,8 @@ CHOptimizedMethod1(self, void, MMVoiceMessageCellView, populateWithMessage, MMMe
     CHSuper1(MMVoiceMessageCellView, populateWithMessage, item);
 
     MessageData *message = item.message;
-    if (TZWeChatPluginConfig.sharedConfig.autoTranslateVoiceEnable &&
-        (TZWeChatPluginConfig.sharedConfig.translateMyselfVoiceEnable ||
+    if (TZConfigManager.sharedManager.autoTranslateVoiceEnable &&
+        (TZConfigManager.sharedManager.translateMyselfVoiceEnable ||
          !message.isSendFromSelf) && message.m_uiVoiceToTextStatus == 0)
         /*
          m_uiVoiceToTextStatus
@@ -185,6 +175,20 @@ CHOptimizedMethod1(self, void, MMVoiceMessageCellView, populateWithMessage, MMMe
 CHConstructor {
     CHLoadLateClass(MMVoiceMessageCellView);
     CHHook1(MMVoiceMessageCellView, populateWithMessage);
+}
+
+#pragma mark - Menu
+
+CHDeclareClass(AppDelegate)
+CHOptimizedMethod1(self, void, AppDelegate, applicationDidFinishLaunching, id, arg1)
+{
+    CHSuper1(AppDelegate, applicationDidFinishLaunching, arg1);
+    [TZPluginManager.sharedManager applicationDidFinishLaunching:arg1];
+}
+
+CHConstructor {
+    CHLoadLateClass(AppDelegate);
+    CHHook1(AppDelegate, applicationDidFinishLaunching);
 }
 
 #pragma mark - log

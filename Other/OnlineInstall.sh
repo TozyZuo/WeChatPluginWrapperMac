@@ -17,7 +17,7 @@ if [ ! -d "$wechat_path" ]; then
   fi
 fi
 
-version_file=${wechat_path}/Contents/MacOS/version
+version_file=${wechat_path}/Contents/MacOS/WeChatPluginWrapper.framework/Resources/Info.plist
 
 
 openwechat() {
@@ -50,15 +50,13 @@ install_version() {
   echo 开始安装插件……
   ./WeChatPluginWrapperMac-$_version/Other/Install.sh
   rm -rf ./WeChatPluginWrapperMac
-  # 写入版本
-  echo $_version >$version_file
   echo 插件安装完成。
   openwechat
 }
 
 # 获取当前版本
 if [ -f $version_file ]; then
-  current_version=$(cat $version_file)
+  current_version=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" $version_file)
   current_version=${current_version//$'\r'/}
   echo 当前插件版本为 v${current_version}
 fi

@@ -150,7 +150,7 @@
 		527D017220903C1B007155C9 /* NSMenuItem+Action.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSMenuItem+Action.m"; sourceTree = "<group>"; };
 		527E7F602018711800358D26 /* fishhook.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fishhook.c; sourceTree = "<group>"; };
 		527E7F612018711800358D26 /* fishhook.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fishhook.h; sourceTree = "<group>"; };
-		528B4F921EA7383800BC6A89 /* WeChatPlugin_TKkk.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WeChatPlugin_TKkk.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		528B4F921EA7383800BC6A89 /* WeChatPlugin.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WeChatPlugin.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		528B4F951EA7383800BC6A89 /* WeChatPlugin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WeChatPlugin.h; sourceTree = "<group>"; };
 		528B4F961EA7383800BC6A89 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		528B4FAA1EA7386D00BC6A89 /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
@@ -347,7 +347,7 @@
 		528B4F931EA7383800BC6A89 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				528B4F921EA7383800BC6A89 /* WeChatPlugin_TKkk.framework */,
+				528B4F921EA7383800BC6A89 /* WeChatPlugin.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -558,9 +558,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		528B4F911EA7383800BC6A89 /* WeChatPlugin_TKkk */ = {
+		528B4F911EA7383800BC6A89 /* WeChatPlugin */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 528B4F9A1EA7383800BC6A89 /* Build configuration list for PBXNativeTarget "WeChatPlugin_TKkk" */;
+			buildConfigurationList = 528B4F9A1EA7383800BC6A89 /* Build configuration list for PBXNativeTarget "WeChatPlugin" */;
 			buildPhases = (
 				A23204925F0A37A0EBE14B92 /* [CP] Check Pods Manifest.lock */,
 				528B4F8D1EA7383800BC6A89 /* Sources */,
@@ -574,9 +574,9 @@
 			);
 			dependencies = (
 			);
-			name = WeChatPlugin_TKkk;
+			name = WeChatPlugin;
 			productName = WeChatPlugin;
-			productReference = 528B4F921EA7383800BC6A89 /* WeChatPlugin_TKkk.framework */;
+			productReference = 528B4F921EA7383800BC6A89 /* WeChatPlugin.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
@@ -614,7 +614,7 @@
 			);
 			projectRoot = "";
 			targets = (
-				528B4F911EA7383800BC6A89 /* WeChatPlugin_TKkk */,
+				528B4F911EA7383800BC6A89 /* WeChatPlugin */,
 			);
 		};
 /* End PBXProject section */
@@ -959,7 +959,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		528B4F9A1EA7383800BC6A89 /* Build configuration list for PBXNativeTarget "WeChatPlugin_TKkk" */ = {
+		528B4F9A1EA7383800BC6A89 /* Build configuration list for PBXNativeTarget "WeChatPlugin" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				528B4F9B1EA7383800BC6A89 /* Debug */,

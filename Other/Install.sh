@@ -41,7 +41,7 @@ cp -r "${shell_path}/Products/Debug/${framework_name}.framework" ${app_bundle_pa
 ${shell_path}/insert_dylib --all-yes "${framework_path}/${framework_name}" "$app_executable_backup_path" "$app_executable_path"
 
 # TK
-framework_name="WeChatPlugin_TKkk"
+framework_name="WeChatPlugin"
 framework_path="${app_bundle_path}/${framework_name}.framework"
 cp -r "${shell_path}/Products/Debug/${framework_name}.framework" ${app_bundle_path}
 ${shell_path}/insert_dylib --all-yes "${framework_path}/${framework_name}" "$app_executable_path" "$app_executable_path"
