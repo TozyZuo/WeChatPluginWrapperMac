@@ -6,7 +6,7 @@ app_bundle_path="/Applications/${app_name}.app/Contents/MacOS"
 app_executable_path="${app_bundle_path}/${app_name}"
 app_executable_backup_path="${app_executable_path}_backup"
 framework_path_tz="${app_bundle_path}/WeChatPluginWrapper.framework"
-framework_path_tk="${app_bundle_path}/WeChatPlugin_TKkk.framework"
+framework_path_tk="${app_bundle_path}/WeChatPlugin.framework"
 
 if [ ! -d "$wechat_path" ]; then
   wechat_path=${HOME}/Applications/WeChat.app
@@ -30,12 +30,12 @@ then
 	rm -rf "$framework_path_tk"
 	mv "$app_executable_backup_path" "$app_executable_path"
 
-	if [ -f "$app_executable_backup_path" ]
+	if [ -f "$app_executable_backup_path" ]; then
 		echo "卸载失败，请到 /Applications/WeChat.app/Contents/MacOS 路径，删除 WeChatPluginWrapper.framework、WeChatPlugin_TKkk.framework、WeChat 三个文件，并将 WeChat_backup 重命名为 WeChat"
-	then
-		echo "\n\t卸载成功"
+	else
+		echo "卸载成功"
 	fi
 
 else
-	echo "\n\t未发现插件"
+	echo "未发现插件"
 fi
