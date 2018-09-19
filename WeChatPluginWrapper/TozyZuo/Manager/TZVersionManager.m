@@ -74,11 +74,16 @@ CHConstructor {
     return ^(NSUInteger status, NSString *message)
     {
         if (status == 1) {
-            [TZVersionManager.sharedManager showUpdateWithMessage:[@"微信小助手更新:\n\n" stringByAppendingString:message] completion:^(NSModalResponse respose) {
-                [TZDownloadWindowController.sharedWindowController downloadWithPluginType:TZPluginTypeTKkk completion:^(NSString * _Nonnull filePath)
-                 {
-                     [self.sharedManager downloadCompletedWithType:TZPluginTypeTKkk filePath:filePath];
-                 }];
+            [TZVersionManager.sharedManager showUpdateWithMessage:[@"微信小助手更新:\n\n" stringByAppendingString:message] completion:^(NSModalResponse respose)
+            {
+                if (respose == NSAlertFirstButtonReturn) {
+                    [TZDownloadWindowController.sharedWindowController downloadWithPluginType:TZPluginTypeTKkk completion:^(NSString * _Nonnull filePath)
+                     {
+                         [self.sharedManager downloadCompletedWithType:TZPluginTypeTKkk filePath:filePath];
+                     }];
+                } else if (respose == NSAlertSecondButtonReturn) {
+                    TZConfigManager.sharedManager.forbidCheckingUpdate = YES;
+                }
             }];
         }
     };
@@ -134,10 +139,10 @@ CHConstructor {
     NSString *cmdString = @"";
     switch (type) {
         case TZPluginTypeWrapper:
-            cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && ./%@/Other/Install.sh && rm -rf ./%@ && killall WeChat && sleep 2s && open %@",directoryName, fileName, fileName, fileName, NSBundle.mainBundle.bundlePath];
+            cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && ./%@/Other/Install.sh && rm -rf ./%@ && rm -rf ./%@.zip && killall WeChat && sleep 2s && open %@",directoryName, fileName, fileName, fileName, fileName, NSBundle.mainBundle.bundlePath];
             break;
         case TZPluginTypeTKkk:
-            cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && cp -r ./%@/Other/Products/Debug/WeChatPlugin.framework %@/Contents/MacOS/ && rm -rf ./%@ && killall WeChat && sleep 2s && open %@",directoryName, fileName, fileName, NSBundle.mainBundle.bundlePath, fileName, NSBundle.mainBundle.bundlePath];
+            cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && cp -r ./%@/Other/Products/Debug/WeChatPlugin.framework %@/Contents/MacOS/ && rm -rf ./%@ && rm -rf ./%@.zip && killall WeChat && sleep 2s && open %@",directoryName, fileName, fileName, NSBundle.mainBundle.bundlePath, fileName, fileName, NSBundle.mainBundle.bundlePath];
             break;
         default:
             break;

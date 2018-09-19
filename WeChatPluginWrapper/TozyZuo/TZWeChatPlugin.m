@@ -8,6 +8,7 @@
 
 #import "TZWeChatPlugin.h"
 #import "TZWeChatHeader.h"
+#import "TZWeChatPluginDefine.h"
 #import "TZPluginManager.h"
 #import "TZConfigManager.h"
 #import "NSDate+TZCategory.h"
@@ -194,10 +195,13 @@ CHConstructor {
 #pragma mark - log
 
 CHDeclareClass(MMLogger)
+
+TZWarningIgnore(-Wunused-function)
 CHOptimizedClassMethod6(self, void, MMLogger, logWithMMLogLevel, int, arg1, module, const char *, arg2, file, const char *, arg3, line, int, arg4, func, const char *, arg5, message, id, arg6)
 {
     NSLog(@"MMLog [%s] %s %s %@", arg2, arg3, arg5, arg6);
 }
+TZWarningIgnoreEnd
 
 CHConstructor {
     CHLoadLateClass(MMLogger);

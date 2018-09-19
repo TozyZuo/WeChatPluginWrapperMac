@@ -7,10 +7,11 @@
 //
 
 #import "TZConfigManager.h"
+#import "TZWeChatPluginDefine.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
 
-static NSString * const kTZWeChatRemotePlistPath = @"https://github.com/TozyZuo/WeChatPluginWrapperMac/raw/master/master/Other/Products/Debug/WeChatPluginWrapper.framework/Resources/Info.plist";
+static NSString * const kTZWeChatRemotePlistPath = @"https://github.com/TozyZuo/WeChatPluginWrapperMac/raw/master/Other/Products/Debug/WeChatPluginWrapper.framework/Versions/A/Resources/Info.plist";
 
 static NSString *TZUserDefaultsKeyPrefix;
 
@@ -155,7 +156,9 @@ static NSString *TZUserDefaultsKeyPrefix;
 {
     NSString *sel = self.dispathMap[[self.info classStringForProperty:[self propertyFromSelector:anInvocation.selector]]];
     if (sel) {
+        TZWarningIgnore(-Warc-performSelector-leaks)
         [self performSelector:NSSelectorFromString(sel) withObject:anInvocation];
+        TZWarningIgnoreEnd
     }
 }
 

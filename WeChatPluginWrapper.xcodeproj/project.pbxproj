@@ -28,7 +28,6 @@
 		BA7C465121415C6300895D9C /* TZWeChatPlugin.h in Headers */ = {isa = PBXBuildFile; fileRef = BA7C464D21415C6300895D9C /* TZWeChatPlugin.h */; };
 		BA7C465221415C6300895D9C /* TZWeChatHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = BA7C464E21415C6300895D9C /* TZWeChatHeader.h */; };
 		BA7C465321415C6300895D9C /* TZWeChatPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = BA7C464F21415C6300895D9C /* TZWeChatPlugin.m */; };
-		BABEB9BB205922EE0083D3FA /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = BABEB9BA205922EE0083D3FA /* Info.plist */; };
 		BABEB9BF205922EE0083D3FA /* WeChatPluginWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = BABEB9BE205922EE0083D3FA /* WeChatPluginWrapper.h */; };
 		BABEB9C1205922EE0083D3FA /* WeChatPluginWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = BABEB9C0205922EE0083D3FA /* WeChatPluginWrapper.m */; };
 		BABEB9C3205922EE0083D3FA /* WeChatPluginWrapperHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = BABEB9C2205922EE0083D3FA /* WeChatPluginWrapperHeader.h */; };
@@ -36,13 +35,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		BA7C464A21415A0700895D9C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BABEBAF920592C270083D3FA /* WeChatPlugin.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 528B4F911EA7383800BC6A89;
-			remoteInfo = WeChatPlugin_TKkk;
-		};
 		BABEB9B6205922EE0083D3FA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BABEB9A8205922EE0083D3FA /* Project object */;
@@ -78,6 +70,7 @@
 		BA2AED6C215232B600732A08 /* Install.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = Install.sh; sourceTree = "<group>"; };
 		BA2AED6D215232B600732A08 /* insert_dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = insert_dylib; sourceTree = "<group>"; };
 		BA2AED6E215232B600732A08 /* OnlineInstall.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = OnlineInstall.sh; sourceTree = "<group>"; };
+		BA2AED6F2152451C00732A08 /* TZWeChatPluginDefine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TZWeChatPluginDefine.h; sourceTree = "<group>"; };
 		BA45387C214F9252004BA7D8 /* TZWeChatPluginNonARC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TZWeChatPluginNonARC.h; sourceTree = "<group>"; };
 		BA45387D214F9252004BA7D8 /* TZWeChatPluginNonARC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TZWeChatPluginNonARC.m; sourceTree = "<group>"; };
 		BA453898214FADBE004BA7D8 /* TZVersionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TZVersionManager.h; sourceTree = "<group>"; };
@@ -190,6 +183,7 @@
 				BA2AED592150E61F00732A08 /* WindowController */,
 				BA453897214FADBE004BA7D8 /* Manager */,
 				BA5DEC3A2146A17200663525 /* Category */,
+				BA2AED6F2152451C00732A08 /* TZWeChatPluginDefine.h */,
 				BA7C464E21415C6300895D9C /* TZWeChatHeader.h */,
 				BA7C464D21415C6300895D9C /* TZWeChatPlugin.h */,
 				BA7C464F21415C6300895D9C /* TZWeChatPlugin.m */,
@@ -334,7 +328,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				BA7C464B21415A0700895D9C /* PBXTargetDependency */,
 				BABEB9B7205922EE0083D3FA /* PBXTargetDependency */,
 			);
 			name = WeChat;
@@ -348,7 +341,7 @@
 		BABEB9A8205922EE0083D3FA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0900;
+				LastUpgradeCheck = 1000;
 				ORGANIZATIONNAME = TozyZuo;
 				TargetAttributes = {
 					BABEB9B0205922EE0083D3FA = {
@@ -411,7 +404,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BABEB9BB205922EE0083D3FA /* Info.plist in Resources */,
 				BA2AED632150E6EC00732A08 /* TZDownloadWindowController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -430,7 +422,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# App\nAPP_NAME=\"WeChat\"\nAPP_BUNDLE_PATH=\"${BUILT_PRODUCTS_DIR}/${APP_NAME}.app/Contents/MacOS\"\nAPP_EXECUTABLE_PATH=\"${APP_BUNDLE_PATH}/${APP_NAME}\"\n\nrm -rf \"${BUILT_PRODUCTS_DIR}/${APP_NAME}.app\"\ncp -r \"${PROJECT_DIR}/${APP_NAME}.app\" \"${BUILT_PRODUCTS_DIR}/\"\n\n# WeChatPluginWrapper\nFRAMEWORK_NAME=\"WeChatPluginWrapper\"\ncp -r \"${BUILT_PRODUCTS_DIR}/${FRAMEWORK_NAME}.framework\" ${APP_BUNDLE_PATH}\ninsert_dylib --all-yes \"@loader_path/${FRAMEWORK_NAME}.framework/${FRAMEWORK_NAME}\" \"$APP_EXECUTABLE_PATH\" \"$APP_EXECUTABLE_PATH\"\n\n# TK\nFRAMEWORK_NAME=\"WeChatPlugin\"\ncp -r \"${BUILT_PRODUCTS_DIR}/${FRAMEWORK_NAME}.framework\" ${APP_BUNDLE_PATH}\ninsert_dylib --all-yes \"@loader_path/${FRAMEWORK_NAME}.framework/${FRAMEWORK_NAME}\" \"$APP_EXECUTABLE_PATH\" \"$APP_EXECUTABLE_PATH\"\n";
+			shellScript = "# App\nAPP_NAME=\"WeChat\"\nAPP_BUNDLE_PATH=\"${BUILT_PRODUCTS_DIR}/${APP_NAME}.app/Contents/MacOS\"\nAPP_EXECUTABLE_PATH=\"${APP_BUNDLE_PATH}/${APP_NAME}\"\n\nrm -rf \"${BUILT_PRODUCTS_DIR}/${APP_NAME}.app\"\ncp -r \"${PROJECT_DIR}/${APP_NAME}.app\" \"${BUILT_PRODUCTS_DIR}/\"\n\n# WeChatPluginWrapper\nFRAMEWORK_NAME=\"WeChatPluginWrapper\"\ncp -r \"${BUILT_PRODUCTS_DIR}/${FRAMEWORK_NAME}.framework\" ${APP_BUNDLE_PATH}\ninsert_dylib --all-yes \"@loader_path/${FRAMEWORK_NAME}.framework/${FRAMEWORK_NAME}\" \"$APP_EXECUTABLE_PATH\" \"$APP_EXECUTABLE_PATH\"\n\n# TK\nFRAMEWORK_NAME=\"WeChatPlugin\"\ncp -r \"${SRCROOT}/Other/Products/Debug/${FRAMEWORK_NAME}.framework\" ${APP_BUNDLE_PATH}\ninsert_dylib --all-yes \"@loader_path/${FRAMEWORK_NAME}.framework/${FRAMEWORK_NAME}\" \"$APP_EXECUTABLE_PATH\" \"$APP_EXECUTABLE_PATH\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -455,11 +447,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		BA7C464B21415A0700895D9C /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = WeChatPlugin_TKkk;
-			targetProxy = BA7C464A21415A0700895D9C /* PBXContainerItemProxy */;
-		};
 		BABEB9B7205922EE0083D3FA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = BABEB9B0205922EE0083D3FA /* WeChatPluginWrapper */;
@@ -482,6 +469,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -489,6 +477,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -542,6 +531,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -549,6 +539,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;

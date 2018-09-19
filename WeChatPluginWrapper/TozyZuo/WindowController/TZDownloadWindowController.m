@@ -83,7 +83,7 @@ typedef NS_ENUM(NSUInteger, TZDownloadState) {
     [self setupInstallBtnTitle:@"取消"];
     [self clearPlugin:self.type];
 
-    [[objc_getClass("TKHTTPManager") shareManager] downloadWithUrlString:[self downloadURLStringFromType:self.type] toDirectoryPah:[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject] progress:^(NSProgress *downloadProgress) {
+    [[objc_getClass("TKHTTPManager") shareManager] downloadWithUrlString:[self downloadURLStringFromType:self.type] toDirectoryPah:NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).lastObject progress:^(NSProgress *downloadProgress) {
         dispatch_async(dispatch_get_main_queue(), ^{
             self.progressView.minValue = 0;
             self.progressView.maxValue = downloadProgress.totalUnitCount / 1024.0;
