@@ -9,7 +9,9 @@
 #import "TZVersionManager.h"
 #import "TZPluginManager.h"
 #import "TZConfigManager.h"
+#import "TZNotificationManager.h"
 #import "TZDownloadWindowController.h"
+#import "TZWeChatHeader.h"
 #import <CaptainHook/CaptainHook.h>
 #import <objc/runtime.h>
 
@@ -23,6 +25,11 @@
 @interface TKVersionManager : NSObject
 + (instancetype)shareManager;
 - (void)checkVersionFinish:(void (^)(NSUInteger status, NSString *message))finish;
+@end
+
+@interface TKWeChatPluginConfig : NSObject
+@property (nonatomic, copy, readonly) NSDictionary *localInfoPlist;
++ (instancetype)sharedConfig;
 @end
 
 @interface TKRemoteControlManager : NSObject
@@ -46,6 +53,7 @@ CHConstructor {
 
 @interface TZVersionManager ()
 <NSApplicationDelegate>
+@property (nonatomic, strong) NSMutableDictionary<NSNumber *,NSString *> *result;
 @end
 
 @implementation TZVersionManager
@@ -57,37 +65,45 @@ CHConstructor {
 
 #pragma mark Private
 
-- (void)checkUpdates
+- (void)checkUpdatesCompletion:(void (^)(NSString *message, NSArray<NSNumber *> *updateTypes))completion
 {
-    [self checkWrapperUpdateWithCompletion:^(BOOL hasUpdate, NSString *message) {
-        if (hasUpdate) {
-            [self showUpdateMessage:message type:TZPluginTypeWrapper];
-        } else {
-            [self checkTKUpdateWithCompletion:^(BOOL hasUpdate, NSString *message) {
-                if (hasUpdate) {
-                    [self showUpdateMessage:[@"微信小助手更新:\n\n" stringByAppendingString:message] type:TZPluginTypeTKkk];
-                } else {
+    if (completion) {
+        [self checkWrapperUpdateWithCompletion:^(BOOL hasUpdate, NSString *wrapperMessage)
+        {
+            if (hasUpdate) {
+                completion(wrapperMessage, @[@(TZPluginTypeWrapper)]);
+            } else {
+                NSMutableArray *types = [[NSMutableArray alloc] init];
+                __block NSString *messages = [wrapperMessage stringByAppendingString:@"\n\n"];
+                [self checkTKUpdateWithCompletion:^(BOOL hasUpdate, NSString *message)
+                {
+                    if (hasUpdate) {
+                        messages = [@"微信小助手更新:\n\n" stringByAppendingString:message];
+                        [types addObject:@(TZPluginTypeTKkk)];
+                    } else {
+                        NSString *tkMessage = [[[objc_getClass("TKWeChatPluginConfig") sharedConfig] localInfoPlist][@"versionInfo"] stringByReplacingOccurrencesOfString:@"\\n" withString:@"\n"];
+                        messages = [messages stringByAppendingFormat:@"微信小助手:\n\n%@\n\n", tkMessage];
+                    }
                     // TODO other plugin
-                }
-            }];
-        }
-    }];
+
+                    completion(messages, types);
+                }];
+            }
+        }];
+    }
 }
 
 - (void)checkWrapperUpdateWithCompletion:(void (^)(BOOL, NSString *))completion
 {
     if (completion) {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            NSDictionary *localInfo = TZConfigManager.sharedManager.localInfoPlist;
-            NSDictionary *remoteInfo = TZConfigManager.sharedManager.remoteInfoPlist;
-            NSString *localBundle = localInfo[@"CFBundleShortVersionString"];
-            NSString *remoteBundle = remoteInfo[@"CFBundleShortVersionString"];
+            BOOL hasUpdate = ![TZConfigManager.sharedManager.localVersion isEqualToString:TZConfigManager.sharedManager.remoteVersion];
 
             dispatch_async(dispatch_get_main_queue(), ^{
-                if (![localBundle isEqualToString:remoteBundle]) {
-                    completion(YES, remoteInfo[@"versionInfo"]);
+                if (hasUpdate) {
+                    completion(YES, TZConfigManager.sharedManager.remoteVersionInfo);
                 } else {
-                    completion(NO, nil);
+                    completion(NO, TZConfigManager.sharedManager.localVersionInfo);
                 }
             });
         });
@@ -102,27 +118,64 @@ CHConstructor {
              if (status == 1) {
                  completion(YES, message);
              } else {
-                 completion(NO, nil);
+                 completion(NO, message);
              }
          }];
     }
 }
 
-- (void)showUpdateMessage:(NSString *)message type:(TZPluginType)type
+- (void)updatePluginsQuietly:(NSArray<NSNumber *> *)pluginTypes
+{
+    [TZDownloadWindowController.sharedWindowController downloadWithPluginTypes:pluginTypes quietly:YES completion:^(NSDictionary<NSNumber *,NSString *> * _Nonnull result, TZDownloadState state)
+     {
+         if (state == TZDownloadStateFinish) {
+             [self.result addEntriesFromDictionary:result];
+             // 下载成功，开始更新
+             [self.result enumerateKeysAndObjectsUsingBlock:^(NSNumber * _Nonnull key, NSString * _Nonnull obj, BOOL * _Nonnull stop) {
+                 [self downloadCompletedWithType:key.pluginTypeValue filePath:obj];
+             }];
+             if (!TZConfigManager.sharedManager.updateQuietlyEnable) {
+                 // 通知完成
+                 [TZNotificationManager.sharedManager postNotificationWithMessage:@"更新完成，重启后生效" forceDisplay:YES buttonTitle:@"立即重启" action:^(NSUserNotification * _Nonnull notification)
+                  {
+                      [self restartWeChat];
+                  }];
+             }
+         } else if (state == TZDownloadStateError) {
+             [self.result addEntriesFromDictionary:result];
+             // 静默状态下，网络失败，就失败了
+             if (!TZConfigManager.sharedManager.updateQuietlyEnable) {
+                 // 通知下载错误
+                 [TZNotificationManager.sharedManager postNotificationWithMessage:@"下载错误" forceDisplay:YES buttonTitle:@"重试" action:^(NSUserNotification * _Nonnull notification)
+                  {
+                      NSMutableArray *leftTypes = pluginTypes.mutableCopy;
+                      [leftTypes removeObjectsInArray:result.allKeys];
+                      [self updatePluginsQuietly:leftTypes];
+                  }];
+             }
+         }
+     }];
+}
+
+- (void)showUpdateMessage:(NSString *)message types:(NSArray<NSNumber *> *)types
 {
     NSAlert *alert = [[NSAlert alloc] init];
     [alert addButtonWithTitle:@"安装更新"];
     [alert addButtonWithTitle:@"不再提示"];
     [alert addButtonWithTitle:@"取消"];
-    [alert setMessageText:@"检测到新版本！主要内容：👇"];
-    [alert setInformativeText:message ?: @""];
+    alert.messageText = @"检测到新版本！主要内容：👇";
+    alert.informativeText = message ?: @"";
     NSModalResponse respose = [alert runModal];
 
     if (respose == NSAlertFirstButtonReturn) {
-        [TZDownloadWindowController.sharedWindowController downloadWithPluginType:type completion:^(NSString * _Nonnull filePath)
-         {
-             [self downloadCompletedWithType:type filePath:filePath];
-         }];
+        [TZDownloadWindowController.sharedWindowController downloadWithPluginTypes:types quietly:NO completion:^(NSDictionary<NSNumber *,NSString *> * _Nonnull result, TZDownloadState state)
+        {
+            [result enumerateKeysAndObjectsUsingBlock:^(NSNumber * _Nonnull key, NSString * _Nonnull obj, BOOL * _Nonnull stop) {
+                [self downloadCompletedWithType:key.pluginTypeValue filePath:obj];
+            }];
+
+            [self restartWeChat];
+        }];
     } else if (respose == NSAlertSecondButtonReturn) {
         TZConfigManager.sharedManager.forbidCheckingUpdate = YES;
     }
@@ -135,10 +188,10 @@ CHConstructor {
     NSString *cmdString = @"";
     switch (type) {
         case TZPluginTypeWrapper:
-            cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && ./%@/Other/Install.sh && rm -rf ./%@ && rm -rf ./%@.zip && killall WeChat && sleep 2s && open %@",directoryName, fileName, fileName, fileName, fileName, NSBundle.mainBundle.bundlePath];
+            cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && ./%@/Other/Install.sh && rm -rf ./%@ && rm -rf ./%@.zip",directoryName, fileName, fileName, fileName, fileName];
             break;
         case TZPluginTypeTKkk:
-            cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && cp -r ./%@/Other/Products/Debug/WeChatPlugin.framework %@/Contents/MacOS/ && rm -rf ./%@ && rm -rf ./%@.zip && killall WeChat && sleep 2s && open %@",directoryName, fileName, fileName, NSBundle.mainBundle.bundlePath, fileName, fileName, NSBundle.mainBundle.bundlePath];
+            cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && cp -r ./%@/Other/Products/Debug/WeChatPlugin.framework %@/Contents/MacOS/ && rm -rf ./%@ && rm -rf ./%@.zip",directoryName, fileName, fileName, NSBundle.mainBundle.bundlePath, fileName, fileName];
             break;
         default:
             break;
@@ -146,13 +199,45 @@ CHConstructor {
     [objc_getClass("TKRemoteControlManager") executeShellCommand:cmdString];
 }
 
+- (void)restartWeChat
+{
+    [objc_getClass("TKRemoteControlManager") executeShellCommand:[NSString stringWithFormat:@"killall WeChat && sleep 2s && open %@", NSBundle.mainBundle.bundlePath]];
+}
+
 #pragma mark NSApplicationDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
-    if (!TZConfigManager.sharedManager.forbidCheckingUpdate) {
-        [self checkUpdates];
+    TZConfigManager *config = TZConfigManager.sharedManager;
+    if (!config.forbidCheckingUpdate) {
+        [self checkUpdatesCompletion:^(NSString * _Nonnull message, NSArray<NSNumber *> * _Nonnull updateTypes)
+        {
+            if (updateTypes.count) {
+                if (config.autoUpdateEnable) {
+                    self.result = [[NSMutableDictionary alloc] init];
+                    if (!config.updateQuietlyEnable) {
+                        // 通知下载
+                        [TZNotificationManager.sharedManager postNotificationWithMessage:@"检测到新版本，开始下载" forceDisplay:YES buttonTitle:@"取消" action:^(NSUserNotification * _Nonnull notification)
+                         {
+                             [TZDownloadWindowController.sharedWindowController cancel];
+                         }];
+                    }
+                    [self updatePluginsQuietly:updateTypes];
+                } else {
+                    [self showUpdateMessage:message types:updateTypes];
+                }
+            }
+        }];
     }
+}
+
+@end
+
+@implementation NSNumber (TZPluginType)
+
+- (TZPluginType)pluginTypeValue
+{
+    return self.unsignedIntegerValue;
 }
 
 @end

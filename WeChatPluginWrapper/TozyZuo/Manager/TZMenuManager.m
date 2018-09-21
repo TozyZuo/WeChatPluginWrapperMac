@@ -9,8 +9,12 @@
 #import "TZMenuManager.h"
 #import "TZConfigManager.h"
 #import "TZPluginManager.h"
+#import "TZVersionManager.h"
+#import "TZNotificationManager.h"
+#import "TZDownloadWindowController.h"
 #import "TZWeChatHeader.h"
 #import <objc/runtime.h>
+
 
 @interface NSMenu (Action)
 - (void)addItems:(NSArray *)subItems;
@@ -66,20 +70,42 @@
                             self.autoTranslateVoiceItem,
                             self.translateMyselfVoiceItem,
                             ]];
-
     NSMenuItem *TozyZuoItem = [[NSMenuItem alloc] init];
     TozyZuoItem.title = @"消息设置";
     TozyZuoItem.submenu = TozyZuoMenu;
 
+    NSMenuItem *autoUpdateItem = [NSMenuItem menuItemWithTitle:@"自动更新" action:@selector(autoUpdateEnableAction:) target:self keyEquivalent:@"" state:config.autoUpdateEnable];
+    if (config.autoUpdateEnable) {
+
+        NSMenuItem *updateQuietlyItem = [NSMenuItem menuItemWithTitle:@"静默更新" action:[config selectorForPropertySEL:@selector(updateQuietlyEnable)] target:config keyEquivalent:@"" state:config.updateQuietlyEnable];
+        updateQuietlyItem.enabled = TZNotificationManager.notificationEnable;
+
+        NSMenu *subMenu = [[NSMenu alloc] initWithTitle:@"静默更新"];
+        subMenu.autoenablesItems = NO;
+        [subMenu addItem:updateQuietlyItem];
+        autoUpdateItem.submenu = subMenu;
+    }
+
+    NSMenuItem *checkUpdateItem = [NSMenuItem menuItemWithTitle:@"检查更新" action:@selector(checkUpdateAction:) target:self keyEquivalent:@"" state:NSControlStateValueOff];
+
+    NSMenuItem *aboutItem = [NSMenuItem menuItemWithTitle:@"关于插件" action:@selector(aboutAcion:) target:self keyEquivalent:@"" state:NSControlStateValueOff];
+
     NSMenu *newMenu = [[NSMenu alloc] initWithTitle:@"插件设置"];
     [newMenu addItems:@[TKkkItem,
-                        TozyZuoItem,]];
+                        TozyZuoItem,
+                        [NSMenuItem separatorItem],
+                        autoUpdateItem,
+                        checkUpdateItem,
+//                        aboutItem,
+                        ]];
     NSMenuItem *newItem = [[NSMenuItem alloc] init];
     newItem.title = @"插件设置";
     newItem.submenu = newMenu;
 
     [mainMenu addItem:newItem];
 }
+
+#pragma mark - Menu Action
 
 - (void)timeDisplayEnableAction:(NSMenuItem *)item
 {
@@ -160,6 +186,52 @@
         [tableView reloadDataForRowIndexes:rowIndexSet columnIndexes:[NSIndexSet indexSetWithIndex:0]];
         [tableView endUpdates];
     }
+}
+
+- (void)autoUpdateEnableAction:(NSMenuItem *)item
+{
+    item.state = !item.state;
+    TZConfigManager *config = TZConfigManager.sharedManager;
+    config.autoUpdateEnable = item.state;
+
+    if (item.state) {
+        NSMenuItem *updateQuietlyItem = [NSMenuItem menuItemWithTitle:@"静默更新" action:[config selectorForPropertySEL:@selector(updateQuietlyEnable)] target:config keyEquivalent:@"" state:config.updateQuietlyEnable];
+
+        NSMenu *subMenu = [[NSMenu alloc] initWithTitle:@"静默更新"];
+        subMenu.autoenablesItems = NO;
+        [subMenu addItem:updateQuietlyItem];
+        item.submenu = subMenu;
+    } else {
+        item.submenu = nil;
+    }
+}
+
+- (void)checkUpdateAction:(NSMenuItem *)item
+{
+    if (TZDownloadWindowController.sharedWindowController.downloadState == TZDownloadStateProgress)
+    {
+        NSAlert *alert = [[NSAlert alloc] init];
+        alert.messageText = @"正在后台静默更新中";
+        [alert runModal];
+    } else {
+        [TZVersionManager.sharedManager checkUpdatesCompletion:^(NSString * _Nonnull message, NSArray<NSNumber *> * _Nonnull updateTypes)
+         {
+             if (updateTypes.count) {
+                 [TZVersionManager.sharedManager showUpdateMessage:message types:updateTypes];
+             } else {
+
+                 NSAlert *alert = [[NSAlert alloc] init];
+                 alert.messageText = @"当前为最新版本！主要内容：👇";
+                 alert.informativeText = message;
+                 [alert runModal];
+             }
+         }];
+    }
+}
+
+- (void)aboutAcion:(NSMenuItem *)item
+{
+
 }
 
 #pragma mark - NSApplicationDelegate

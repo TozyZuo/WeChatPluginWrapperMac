@@ -9,6 +9,14 @@
 #ifndef TZWeChatPluginDefine_h
 #define TZWeChatPluginDefine_h
 
+#define TZInvokeBlockInMainThread(block)\
+if ([NSThread isMainThread]) {\
+    block();\
+} else {\
+    dispatch_async(dispatch_get_main_queue(), ^{\
+        block();\
+    });\
+}
 
 #define TZWarningIgnoreHelper0(x) #x
 #define TZWarningIgnoreHelper1(x) TZWarningIgnoreHelper0(clang diagnostic ignored x)

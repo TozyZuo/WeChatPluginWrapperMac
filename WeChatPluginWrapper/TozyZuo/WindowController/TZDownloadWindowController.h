@@ -8,15 +8,19 @@
 
 #import "TZWindowController.h"
 
-typedef NS_ENUM(NSUInteger, TZPluginType) {
-    TZPluginTypeWrapper,
-    TZPluginTypeTKkk,
+typedef NS_ENUM(NSUInteger, TZDownloadState) {
+    TZDownloadStateFinish,
+    TZDownloadStateProgress,
+    TZDownloadStateCancel,
+    TZDownloadStateError,
 };
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface TZDownloadWindowController : TZWindowController
-- (void)downloadWithPluginType:(TZPluginType )type completion:(void (^)(NSString *filePath))completion;
+@property (nonatomic, readonly) TZDownloadState downloadState;
+- (void)downloadWithPluginTypes:(NSArray<NSNumber *> *)types quietly:(BOOL)quietly completion:(void (^)(NSDictionary<NSNumber */*type*/, NSString */*filePath*/> *result, TZDownloadState state))completion;
+- (void)cancel;
 @end
 
 NS_ASSUME_NONNULL_END

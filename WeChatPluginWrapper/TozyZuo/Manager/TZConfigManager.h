@@ -13,13 +13,16 @@
 @property (nonatomic, assign) BOOL timeDisplayEnable;
 @property (nonatomic, assign) BOOL displayWholeTimeEnable;
 @property (nonatomic, assign) BOOL hideWeChatTimeEnable;
-@property (nonatomic, assign) BOOL fullscreenPopGestureEnable;
 @property (nonatomic, assign) BOOL autoTranslateVoiceEnable;
 @property (nonatomic, assign) BOOL translateMyselfVoiceEnable;
+@property (nonatomic, assign) BOOL autoUpdateEnable;
+@property (nonatomic, assign) BOOL updateQuietlyEnable;
 @property (nonatomic, assign) BOOL forbidCheckingUpdate;
 
-@property (nonatomic, readonly) NSDictionary *localInfoPlist;
-@property (nonatomic, readonly) NSDictionary *remoteInfoPlist;
+@property (nonatomic, readonly) NSString *localVersion;
+@property (nonatomic, readonly) NSString *remoteVersion;
+@property (nonatomic, readonly) NSString *localVersionInfo;
+@property (nonatomic, readonly) NSString *remoteVersionInfo;
 
 - (SEL)selectorForPropertySEL:(SEL)propertySEL;
 

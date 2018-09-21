@@ -15,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>FMWK</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.2</string>
+	<string>1.0.3</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -23,8 +23,8 @@
 	<key>NSPrincipalClass</key>
 	<string></string>
 	<key>versionInfo</key>
-	<string>v1.0.2 (2018-09-19)：
-👉🏻  添加语音自动转文字功能
-👉🏼  添加自动更新功能</string>
+	<string>v1.0.3 (2018-09-23)：
+👉🏻  添加自动更新功能
+👉🏼  添加后台更新功能</string>
 </dict>
 </plist>

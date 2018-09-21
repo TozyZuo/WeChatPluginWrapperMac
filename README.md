@@ -7,30 +7,27 @@
 
 <!--感谢[@Natoto/WeChatPlugin](https://github.com/Natoto/WeChatPlugin)的功能支持。-->
 
-## 安装及更新方法
+## 安装及卸载
 
-打开`应用程序-实用工具-Terminal(终端)`，执行下面的命令安装：
+首次安装，打开`应用程序-实用工具-Terminal(终端)`，执行下面的命令进行安装或更新：
 
 ```sh
 curl -o- -L https://github.com/TozyZuo/WeChatPluginWrapperMac/raw/master/Other/OnlineInstall.sh | bash -s
 ```
+
+插件安装完后会在每次启动自动检查更新，也可手动检查更新，如果开启自动更新，则无需用户确认，自动更新到最新版本。如果没有开启静默更新，则更新时，及更新完毕会发送通知，如果用户允许微信通知的话
+
+卸载
+
+```sh
+curl -o- -L https://github.com/TozyZuo/WeChatPluginWrapperMac/raw/master/Other/Uninstall.sh | bash -s
+```
+
 ## 目前已集成如下pod
 
 ### TKkk-WeChatPlugin（v1.7.1）
-功能：
+[详细功能请前往项目主页查看](https://github.com/TKkk-iOSer/WeChatPlugin-MacOS)
 
-* 消息自动回复
-* 消息防撤回
-* 远程控制(已支持语音)
-* 微信多开
-* 第二次登录免认证
-* 聊天置底功能(类似置顶)
-* 微信窗口置顶
-* 会话多选删除
-* 自动登录开关
-* 通知中心快捷回复
-* 聊天窗口表情包复制 & 存储
-* 小助手检测更新提醒
 
 <!--### Natoto-WeChatPlugin
 功能：
@@ -40,6 +37,7 @@ curl -o- -L https://github.com/TozyZuo/WeChatPluginWrapperMac/raw/master/Other/O
 ### 添加功能
 * 每条消息展示消息时间
 * 语音自动转文字
+* 插件自动更新
 
 ## License
 MIT

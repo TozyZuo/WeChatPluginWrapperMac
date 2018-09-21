@@ -7,7 +7,9 @@
 //
 
 #import "TZDownloadWindowController.h"
+#import "TZVersionManager.h"
 #import "TZWeChatHeader.h"
+#import "TZWeChatPluginDefine.h"
 #import <objc/runtime.h>
 
 @interface NSString (Action)
@@ -26,12 +28,6 @@
 @end
 
 
-typedef NS_ENUM(NSUInteger, TZDownloadState) {
-    TZDownloadStateProgress,
-    TZDownloadStateFinish,
-    TZDownloadStateError,
-};
-
 @interface TZDownloadWindowController ()
 @property (weak) IBOutlet NSTextField *titleLabel;
 @property (weak) IBOutlet NSButton *installButton;
@@ -39,8 +35,9 @@ typedef NS_ENUM(NSUInteger, TZDownloadState) {
 @property (weak) IBOutlet NSTextField *progressLabel;
 @property (nonatomic, assign) TZDownloadState downloadState;
 @property (nonatomic, strong) NSString *filePath;
-@property (nonatomic, assign) TZPluginType type;
-@property (nonatomic,  copy ) void (^completion)(NSString *filePath);
+@property (nonatomic, strong) NSArray<NSNumber *> *types;
+@property (nonatomic, strong) NSMutableDictionary *result;
+@property (nonatomic,  copy ) void (^completion)(NSDictionary<NSNumber *,NSString *> * _Nonnull, TZDownloadState);
 @end
 
 @implementation TZDownloadWindowController
@@ -61,10 +58,11 @@ typedef NS_ENUM(NSUInteger, TZDownloadState) {
         }
         case TZDownloadStateFinish: {
             if (self.completion) {
-                self.completion(self.filePath);
+                self.completion(self.result, TZDownloadStateFinish);
             }
             break;
         }
+        case TZDownloadStateCancel:
         case TZDownloadStateError: {
             [self downloadPlugin];
             break;
@@ -81,36 +79,78 @@ typedef NS_ENUM(NSUInteger, TZDownloadState) {
     self.titleLabel.stringValue = @"正在下载更新…";
     self.progressView.doubleValue = 0;
     [self setupInstallBtnTitle:@"取消"];
-    [self clearPlugin:self.type];
 
-    [[objc_getClass("TKHTTPManager") shareManager] downloadWithUrlString:[self downloadURLStringFromType:self.type] toDirectoryPah:NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).lastObject progress:^(NSProgress *downloadProgress) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            self.progressView.minValue = 0;
-            self.progressView.maxValue = downloadProgress.totalUnitCount / 1024.0;
-            self.progressView.doubleValue = downloadProgress.completedUnitCount  / 1024.0;
-            CGFloat currentCount = downloadProgress.completedUnitCount / 1024.0 / 1024.0;
-            CGFloat totalCount = downloadProgress.totalUnitCount / 1024.0 / 1024.0;
-            self.progressLabel.stringValue = [NSString stringWithFormat:@"%.2lf MB / %.2lf MB", currentCount, totalCount];
-        });
-    } completionHandler:^(NSString *filePath, NSError * _Nullable error) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if (error) {
-                self.downloadState = TZDownloadStateError;
-                if (error.code == NSURLErrorCancelled) {
-                    self.titleLabel.stringValue = @"已取消";
-                    [self setupInstallBtnTitle:@"重新下载"];
-                    self.progressLabel.stringValue = @"";
-                } else {
-                    self.titleLabel.stringValue = @"更新错误";
-                    [self setupInstallBtnTitle:@"重试"];
-                }
-                return;
-            }
-            self.downloadState = TZDownloadStateFinish;
+    [self downloadPluginFromTypes:self.types.mutableCopy progress:^(NSProgress *downloadProgress, TZPluginType type)
+    {
+        // TODO
+        self.progressView.minValue = 0;
+        self.progressView.maxValue = downloadProgress.totalUnitCount / 1024.0;
+        self.progressView.doubleValue = downloadProgress.completedUnitCount  / 1024.0;
+        CGFloat currentCount = downloadProgress.completedUnitCount / 1024.0 / 1024.0;
+        CGFloat totalCount = downloadProgress.totalUnitCount / 1024.0 / 1024.0;
+        self.progressLabel.stringValue = [NSString stringWithFormat:@"%.2lf MB / %.2lf MB", currentCount, totalCount];
+    } completion:^(NSDictionary<NSNumber *,NSString *> * _Nonnull result, TZDownloadState state) {
+        self.downloadState = state;
+        if (state == TZDownloadStateFinish)
+        {
             [self setupInstallBtnTitle:@"安装并重启应用"];
             self.titleLabel.stringValue = @"可以开始安装了";
-            self.filePath = filePath;
-        });
+        }
+        else if (state == TZDownloadStateError)
+        {
+            self.titleLabel.stringValue = @"更新错误";
+            [self setupInstallBtnTitle:@"重试"];
+        }
+        else if (state == TZDownloadStateCancel)
+        {
+            self.titleLabel.stringValue = @"已取消";
+            [self setupInstallBtnTitle:@"重新下载"];
+            self.progressLabel.stringValue = @"";
+        }
+    }];
+}
+
+- (void)downloadPluginFromTypes:(NSMutableArray<NSNumber *> *)types
+                       progress:(nullable void (^)(NSProgress *downloadProgress, TZPluginType type))progress
+                     completion:(nullable void (^)(NSDictionary<NSNumber *,NSString *> * _Nonnull result, TZDownloadState state))completion
+{
+    TZPluginType pluginType = types.firstObject.pluginTypeValue;
+    [types removeObjectAtIndex:0];
+    [self clearPlugin:pluginType];
+
+    [[objc_getClass("TKHTTPManager") shareManager] downloadWithUrlString:[self downloadURLStringFromType:pluginType] toDirectoryPah:NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).lastObject progress:^(NSProgress *downloadProgress)
+    {
+        if (progress) {
+            TZInvokeBlockInMainThread(^{
+                progress(downloadProgress, pluginType);
+            })
+        }
+    } completionHandler:^(NSString *filePath, NSError * _Nullable error) {
+
+        if (error) {
+            if (completion) {
+                TZInvokeBlockInMainThread(^{
+                    if (error.code == NSURLErrorCancelled) {
+                        completion(self.result, TZDownloadStateCancel);
+                    } else {
+                        completion(self.result, TZDownloadStateError);
+                    }
+                })
+            }
+        } else {
+
+            self.result[@(pluginType)] = filePath;
+
+            if (types.count) {
+                [self downloadPluginFromTypes:types progress:progress completion:completion];
+            } else {
+                if (completion) {
+                    TZInvokeBlockInMainThread(^{
+                        completion(self.result, TZDownloadStateFinish);
+                    })
+                }
+            }
+        }
     }];
 }
 
@@ -156,13 +196,32 @@ typedef NS_ENUM(NSUInteger, TZDownloadState) {
     }
 }
 
-- (void)downloadWithPluginType:(TZPluginType)type completion:(void (^)(NSString *filePath))completion
+#pragma mark - Public
+
+- (void)downloadWithPluginTypes:(NSArray<NSNumber *> *)types quietly:(BOOL)quietly completion:(void (^)(NSDictionary<NSNumber *,NSString *> * _Nonnull, TZDownloadState))completion
 {
-    self.type = type;
-    self.completion = completion;
-    [self showWindow:self];
-    [self.window center];
-    [self.window makeKeyWindow];
+    self.result = [[NSMutableDictionary alloc] init];
+    
+    if (quietly) {
+        [self downloadPluginFromTypes:types.mutableCopy progress:nil completion:^(NSDictionary<NSNumber *,NSString *> * _Nonnull result, TZDownloadState state)
+        {
+            self.downloadState = state;
+            if (completion) {
+                completion(result, state);
+            }
+        }];
+    } else {
+        self.types = types;
+        self.completion = completion;
+        [self showWindow:self];
+        [self.window center];
+        [self.window makeKeyWindow];
+    }
+}
+
+- (void)cancel
+{
+    [[objc_getClass("TKHTTPManager") shareManager] cancelDownload];
 }
 
 @end

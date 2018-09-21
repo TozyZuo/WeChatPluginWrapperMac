@@ -25,9 +25,43 @@ static NSString *TZUserDefaultsKeyPrefix;
 }
 @end
 
+@interface TZProperty : NSObject
+@property (nonatomic, strong) NSString *name;
+@property (nonatomic, strong) NSString *classString; // 简单解析，并未处理复杂类型
+@property (nonatomic, assign) BOOL isReadOnly;
+@property (nonatomic, assign) objc_property_t property;
+- (instancetype)initWithProperty:(objc_property_t)property;
+@end
+
+@implementation TZProperty
+
+- (instancetype)initWithProperty:(objc_property_t)p
+{
+    if (self = [super init]) {
+        self.property = p;
+
+        self.name = [NSString stringWithUTF8String:property_getName(p)];
+
+        for (NSString *attribute in [@(property_getAttributes(p)) componentsSeparatedByString:@","]) {
+            if ([attribute hasPrefix:@"T"]) {
+                NSString *classString = [attribute substringFromIndex:1];
+                if ([classString hasPrefix:@"@"]) {
+                    classString = [classString substringWithRange:NSMakeRange(2, classString.length - 3)];
+                }
+                self.classString = classString;
+            } else if ([attribute hasPrefix:@"R"]) {
+                self.isReadOnly = YES;
+            }
+        }
+    }
+    return self;
+}
+
+@end
+
 @interface TZObjectInfo : NSObject
-@property (nonatomic, strong) NSArray *propertyNames;
-@property (nonatomic, strong) NSDictionary *classTypeMap;
+@property (nonatomic, copy) NSDictionary<NSString */*name*/, TZProperty */*property*/> *propertyDictionary;
+@property (nonatomic, copy) NSArray *properties;
 - (instancetype)initWithObject:(NSObject *)object;
 - (NSString *)classStringForProperty:(NSString *)property;
 @end
@@ -38,8 +72,8 @@ static NSString *TZUserDefaultsKeyPrefix;
 {
     if (self = [super init]) {
 
-        NSMutableArray *propertyNames = [[NSMutableArray alloc] init];
-        NSMutableDictionary *classTypeMap = [[NSMutableDictionary alloc] init];
+        NSMutableArray *properties = [[NSMutableArray alloc] init];
+        NSMutableDictionary *propertyDictionary = [[NSMutableDictionary alloc] init];
 
         Class class = object.class;
 
@@ -57,36 +91,22 @@ static NSString *TZUserDefaultsKeyPrefix;
                     continue;
                 }
 
-                // propertyName
-                NSString *propertyName = [NSString stringWithUTF8String:property_getName(p)];
-                [propertyNames addObject:propertyName];
-
-                // class map
-                unsigned count;
-                objc_property_attribute_t *attributes = property_copyAttributeList(p, &count);
-                for (int i = 0; i < count; i++) {
-                    if ([@(attributes[i].name) isEqualToString:@"T"]) {
-                        NSString *classString = @(attributes[i].value);
-                        if ([classString hasPrefix:@"@"]) {
-                            classString = [classString substringWithRange:NSMakeRange(2, classString.length - 3)];
-                        }
-                        classTypeMap[propertyName] = classString;
-                    }
-                }
-                free(attributes);
+                TZProperty *property = [[TZProperty alloc] initWithProperty:p];
+                [properties addObject:property];
+                propertyDictionary[@(property_getName(p))] = property;
             }
             free(pList);
             class = class_getSuperclass(class);
         }
-        self.propertyNames = propertyNames.reverseObjectEnumerator.allObjects.mutableCopy;
-        self.classTypeMap = classTypeMap;
+        self.properties = properties.reverseObjectEnumerator.allObjects;
+        self.propertyDictionary = propertyDictionary;
     }
     return self;
 }
 
 - (NSString *)classStringForProperty:(NSString *)property
 {
-    return self.classTypeMap[property];
+    return self.propertyDictionary[property].classString;
 }
 
 @end
@@ -109,9 +129,11 @@ static NSString *TZUserDefaultsKeyPrefix;
         self.info = [[TZObjectInfo alloc] initWithObject:self];
         self.dispathMap = @{@"c": NSStringFromSelector(@selector(handleBOOLInvocation:))};
 
-        for (NSString *property in self.info.propertyNames) {
-            [self setValue:[[NSUserDefaults standardUserDefaults] objectForKey:[TZUserDefaultsKeyPrefix stringByAppendingString:property]] forKey:property];
-            [self addObserver:self forKeyPath:property options:NSKeyValueObservingOptionNew context:NULL];
+        for (TZProperty *property in self.info.properties) {
+            if (!property.isReadOnly) {
+                [self setValue:[[NSUserDefaults standardUserDefaults] objectForKey:[TZUserDefaultsKeyPrefix stringByAppendingString:property.name]] forKey:property.name];
+                [self addObserver:self forKeyPath:property.name options:NSKeyValueObservingOptionNew context:NULL];
+            }
         }
 
     }
@@ -205,6 +227,26 @@ static NSString *TZUserDefaultsKeyPrefix;
         _remoteInfoPlist = [NSDictionary dictionaryWithContentsOfURL:[NSURL URLWithString:kTZWeChatRemotePlistPath]];
     }
     return _remoteInfoPlist;
+}
+
+- (NSString *)localVersion
+{
+    return self.localInfoPlist[@"CFBundleShortVersionString"];
+}
+
+- (NSString *)remoteVersion
+{
+    return self.remoteInfoPlist[@"CFBundleShortVersionString"];
+}
+
+- (NSString *)localVersionInfo
+{
+    return self.localInfoPlist[@"versionInfo"];
+}
+
+- (NSString *)remoteVersionInfo
+{
+    return self.remoteInfoPlist[@"versionInfo"];
 }
 
 - (SEL)selectorForPropertySEL:(SEL)propertySEL
