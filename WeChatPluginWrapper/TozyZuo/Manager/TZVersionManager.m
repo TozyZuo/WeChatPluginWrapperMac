@@ -68,6 +68,10 @@ CHConstructor {
 - (void)checkUpdatesCompletion:(void (^)(NSString *message, NSArray<NSNumber *> *updateTypes))completion
 {
     if (completion) {
+        // clearCache
+        [TZConfigManager.sharedManager clearCache];
+        [[objc_getClass("TKWeChatPluginConfig") sharedConfig] setValue:nil forKey:@"romoteInfoPlist"];
+
         [self checkWrapperUpdateWithCompletion:^(BOOL hasUpdate, NSString *wrapperMessage)
         {
             if (hasUpdate) {
@@ -84,7 +88,7 @@ CHConstructor {
                         NSString *tkMessage = [[[objc_getClass("TKWeChatPluginConfig") sharedConfig] localInfoPlist][@"versionInfo"] stringByReplacingOccurrencesOfString:@"\\n" withString:@"\n"];
                         messages = [messages stringByAppendingFormat:@"微信小助手:\n\n%@\n\n", tkMessage];
                     }
-                    // TODO other plugin
+                    // @other plugin
 
                     completion(messages, types);
                 }];
@@ -168,6 +172,9 @@ CHConstructor {
     NSModalResponse respose = [alert runModal];
 
     if (respose == NSAlertFirstButtonReturn) {
+        NSMutableArray *t = types.mutableCopy;
+        [t addObjectsFromArray:t];
+        types = t;
         [TZDownloadWindowController.sharedWindowController downloadWithPluginTypes:types quietly:NO completion:^(NSDictionary<NSNumber *,NSString *> * _Nonnull result, TZDownloadState state)
         {
             [result enumerateKeysAndObjectsUsingBlock:^(NSNumber * _Nonnull key, NSString * _Nonnull obj, BOOL * _Nonnull stop) {
@@ -185,18 +192,30 @@ CHConstructor {
 {
     NSString *directoryName = [filePath stringByDeletingLastPathComponent];
     NSString *fileName = [[filePath lastPathComponent] stringByDeletingPathExtension];
+    NSString *WeChatPath = NSBundle.mainBundle.bundlePath;
     NSString *cmdString = @"";
     switch (type) {
         case TZPluginTypeWrapper:
+        {
             cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && ./%@/Other/Install.sh && rm -rf ./%@ && rm -rf ./%@.zip",directoryName, fileName, fileName, fileName, fileName];
+            [objc_getClass("TKRemoteControlManager") executeShellCommand:cmdString];
+        }
             break;
         case TZPluginTypeTKkk:
-            cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && cp -r ./%@/Other/Products/Debug/WeChatPlugin.framework %@/Contents/MacOS/ && rm -rf ./%@ && rm -rf ./%@.zip",directoryName, fileName, fileName, NSBundle.mainBundle.bundlePath, fileName, fileName];
+        {
+            cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && cp -r ./%@/Other/Products/Debug/WeChatPlugin.framework %@/Contents/MacOS/ && rm -rf ./%@ && rm -rf ./%@.zip &&",directoryName, fileName, fileName, WeChatPath, fileName, fileName];
+            [objc_getClass("TKRemoteControlManager") executeShellCommand:cmdString];
+
+            NSString *file = [NSString stringWithFormat:@"%@/Contents/MacOS/WeChatPlugin.framework/Resources/zh-Hans.lproj/Localizable.strings", WeChatPath];
+            NSMutableString *str = [NSMutableString stringWithContentsOfFile:file encoding:NSUnicodeStringEncoding error:nil];
+            [str replaceOccurrencesOfString:@"TK拦截到一条撤回消息: " withString:@"拦截到一条撤回消息: " options:0 range:NSMakeRange(0, str.length)];
+            [str replaceOccurrencesOfString:@"TK正在为你免认证登录~" withString:@"正在为你免认证登录~" options:0 range:NSMakeRange(0, str.length)];
+            [str writeToFile:file atomically:YES encoding:NSUnicodeStringEncoding error:nil];
+        }
             break;
         default:
             break;
     }
-    [objc_getClass("TKRemoteControlManager") executeShellCommand:cmdString];
 }
 
 - (void)restartWeChat

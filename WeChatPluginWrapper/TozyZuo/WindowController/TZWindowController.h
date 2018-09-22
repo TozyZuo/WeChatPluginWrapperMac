@@ -10,6 +10,10 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@interface NSWindowController (Action)
+- (void)show;
+@end
+
 @interface TZWindowController : NSWindowController
 + (instancetype)sharedWindowController;
 @end

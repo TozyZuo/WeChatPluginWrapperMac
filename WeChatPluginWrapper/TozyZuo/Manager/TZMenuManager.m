@@ -12,6 +12,7 @@
 #import "TZVersionManager.h"
 #import "TZNotificationManager.h"
 #import "TZDownloadWindowController.h"
+#import "TZAboutWindowController.h"
 #import "TZWeChatHeader.h"
 #import <objc/runtime.h>
 
@@ -96,7 +97,7 @@
                         [NSMenuItem separatorItem],
                         autoUpdateItem,
                         checkUpdateItem,
-//                        aboutItem,
+                        aboutItem,
                         ]];
     NSMenuItem *newItem = [[NSMenuItem alloc] init];
     newItem.title = @"插件设置";
@@ -231,7 +232,7 @@
 
 - (void)aboutAcion:(NSMenuItem *)item
 {
-
+    [TZAboutWindowController.sharedWindowController show];
 }
 
 #pragma mark - NSApplicationDelegate

@@ -23,7 +23,12 @@
 	<key>NSPrincipalClass</key>
 	<string></string>
 	<key>versionInfo</key>
-	<string>v1.0.3 (2018-09-23)：
+	<string>v1.0.4 (2018-09-22)：
+👉🏻  优化一些逻辑
+👉🏼  添加“关于插件”菜单
+👉🏼  没有什么大毛病短期内应该不会更新了，除非作者有新想法并且有时间
+
+v1.0.3 (2018-09-21)：
 👉🏻  添加自动更新功能
 👉🏼  添加后台更新功能</string>
 </dict>

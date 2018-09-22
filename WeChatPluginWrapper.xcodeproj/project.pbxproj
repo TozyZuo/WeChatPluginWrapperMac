@@ -30,6 +30,10 @@
 		BA7C465121415C6300895D9C /* TZWeChatPlugin.h in Headers */ = {isa = PBXBuildFile; fileRef = BA7C464D21415C6300895D9C /* TZWeChatPlugin.h */; };
 		BA7C465221415C6300895D9C /* TZWeChatHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = BA7C464E21415C6300895D9C /* TZWeChatHeader.h */; };
 		BA7C465321415C6300895D9C /* TZWeChatPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = BA7C464F21415C6300895D9C /* TZWeChatPlugin.m */; };
+		BAB4E6512156024400977CB2 /* TZAboutWindowController.h in Headers */ = {isa = PBXBuildFile; fileRef = BAB4E64E2156024400977CB2 /* TZAboutWindowController.h */; };
+		BAB4E6522156024400977CB2 /* TZAboutWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = BAB4E64F2156024400977CB2 /* TZAboutWindowController.m */; };
+		BAB4E6532156024400977CB2 /* TZAboutWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = BAB4E6502156024400977CB2 /* TZAboutWindowController.xib */; };
+		BAB4E6562156048100977CB2 /* about.rtfd in Resources */ = {isa = PBXBuildFile; fileRef = BAB4E6552156048000977CB2 /* about.rtfd */; };
 		BABEB9BF205922EE0083D3FA /* WeChatPluginWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = BABEB9BE205922EE0083D3FA /* WeChatPluginWrapper.h */; };
 		BABEB9C1205922EE0083D3FA /* WeChatPluginWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = BABEB9C0205922EE0083D3FA /* WeChatPluginWrapper.m */; };
 		BABEB9C3205922EE0083D3FA /* WeChatPluginWrapperHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = BABEB9C2205922EE0083D3FA /* WeChatPluginWrapperHeader.h */; };
@@ -99,6 +103,10 @@
 		BA7C464D21415C6300895D9C /* TZWeChatPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TZWeChatPlugin.h; sourceTree = "<group>"; };
 		BA7C464E21415C6300895D9C /* TZWeChatHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TZWeChatHeader.h; sourceTree = "<group>"; };
 		BA7C464F21415C6300895D9C /* TZWeChatPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TZWeChatPlugin.m; sourceTree = "<group>"; };
+		BAB4E64E2156024400977CB2 /* TZAboutWindowController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TZAboutWindowController.h; sourceTree = "<group>"; };
+		BAB4E64F2156024400977CB2 /* TZAboutWindowController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TZAboutWindowController.m; sourceTree = "<group>"; };
+		BAB4E6502156024400977CB2 /* TZAboutWindowController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TZAboutWindowController.xib; sourceTree = "<group>"; };
+		BAB4E6552156048000977CB2 /* about.rtfd */ = {isa = PBXFileReference; lastKnownFileType = wrapper.rtfd; path = about.rtfd; sourceTree = "<group>"; };
 		BABEB9B1205922EE0083D3FA /* WeChatPluginWrapper.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WeChatPluginWrapper.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BABEB9B5205922EE0083D3FA /* WeChat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BABEB9BA205922EE0083D3FA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -126,6 +134,9 @@
 			children = (
 				BA2AED5A2150E65700732A08 /* TZWindowController.h */,
 				BA2AED5B2150E65700732A08 /* TZWindowController.m */,
+				BAB4E64E2156024400977CB2 /* TZAboutWindowController.h */,
+				BAB4E64F2156024400977CB2 /* TZAboutWindowController.m */,
+				BAB4E6502156024400977CB2 /* TZAboutWindowController.xib */,
 				BA2AED5E2150E6EC00732A08 /* TZDownloadWindowController.h */,
 				BA2AED5F2150E6EC00732A08 /* TZDownloadWindowController.m */,
 				BA2AED602150E6EC00732A08 /* TZDownloadWindowController.xib */,
@@ -193,6 +204,7 @@
 		BA7C464C21415C6300895D9C /* TozyZuo */ = {
 			isa = PBXGroup;
 			children = (
+				BAB4E6552156048000977CB2 /* about.rtfd */,
 				BA2AED592150E61F00732A08 /* WindowController */,
 				BA453897214FADBE004BA7D8 /* Manager */,
 				BA5DEC3A2146A17200663525 /* Category */,
@@ -298,6 +310,7 @@
 				BA4538AA214FADBE004BA7D8 /* TZManager.h in Headers */,
 				BABEB9C3205922EE0083D3FA /* WeChatPluginWrapperHeader.h in Headers */,
 				BA2AED5C2150E65700732A08 /* TZWindowController.h in Headers */,
+				BAB4E6512156024400977CB2 /* TZAboutWindowController.h in Headers */,
 				BA2AED612150E6EC00732A08 /* TZDownloadWindowController.h in Headers */,
 				BABEB9BF205922EE0083D3FA /* WeChatPluginWrapper.h in Headers */,
 				BA7C465221415C6300895D9C /* TZWeChatHeader.h in Headers */,
@@ -420,6 +433,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				BA2AED632150E6EC00732A08 /* TZDownloadWindowController.xib in Resources */,
+				BAB4E6532156024400977CB2 /* TZAboutWindowController.xib in Resources */,
+				BAB4E6562156048100977CB2 /* about.rtfd in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -447,6 +462,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BA4538A9214FADBE004BA7D8 /* TZMenuManager.m in Sources */,
+				BAB4E6522156024400977CB2 /* TZAboutWindowController.m in Sources */,
 				BA4538A6214FADBE004BA7D8 /* TZConfigManager.m in Sources */,
 				BA5DEC422146A17200663525 /* NSDate+TZCategory.m in Sources */,
 				BA2AED812154DE9E00732A08 /* TZNotificationManager.m in Sources */,

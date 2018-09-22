@@ -27,6 +27,12 @@
 - (void)cancelDownload;
 @end
 
+@interface TKVersionManager : NSObject
++ (instancetype)shareManager;
+- (void)downloadPluginProgress:(void (^)(NSProgress *downloadProgress))downloadProgressBlock completionHandler:(void (^)(NSString *filePath, NSError * _Nullable error))completionHandler;
+- (void)cancelDownload;
+@end
+
 
 @interface TZDownloadWindowController ()
 @property (weak) IBOutlet NSTextField *titleLabel;
@@ -41,13 +47,6 @@
 @end
 
 @implementation TZDownloadWindowController
-
-- (void)windowDidLoad
-{
-    [super windowDidLoad];
-
-    [self downloadPlugin];
-}
 
 - (IBAction)buttonAction:(NSButton *)sender
 {
@@ -76,21 +75,22 @@
 {
     self.downloadState = TZDownloadStateProgress;
     self.window.title = @"更新插件";
-    self.titleLabel.stringValue = @"正在下载更新…";
     self.progressView.doubleValue = 0;
+    self.titleLabel.stringValue = @"";
     [self setupInstallBtnTitle:@"取消"];
 
+    NSMutableSet *typeSet = [[NSMutableSet alloc] init];
     [self downloadPluginFromTypes:self.types.mutableCopy progress:^(NSProgress *downloadProgress, TZPluginType type)
     {
-        // TODO
         self.progressView.minValue = 0;
         self.progressView.maxValue = downloadProgress.totalUnitCount / 1024.0;
         self.progressView.doubleValue = downloadProgress.completedUnitCount  / 1024.0;
         CGFloat currentCount = downloadProgress.completedUnitCount / 1024.0 / 1024.0;
         CGFloat totalCount = downloadProgress.totalUnitCount / 1024.0 / 1024.0;
         self.progressLabel.stringValue = [NSString stringWithFormat:@"%.2lf MB / %.2lf MB", currentCount, totalCount];
+        [typeSet addObject:@(type)];
+        self.titleLabel.stringValue = [NSString stringWithFormat:@"正在下载更新[%lu/%lu]…", typeSet.count, self.types.count];
     } completion:^(NSDictionary<NSNumber *,NSString *> * _Nonnull result, TZDownloadState state) {
-        self.downloadState = state;
         if (state == TZDownloadStateFinish)
         {
             [self setupInstallBtnTitle:@"安装并重启应用"];
@@ -111,47 +111,130 @@
 }
 
 - (void)downloadPluginFromTypes:(NSMutableArray<NSNumber *> *)types
-                       progress:(nullable void (^)(NSProgress *downloadProgress, TZPluginType type))progress
+                       progress:(nullable void (^)(NSProgress *progress, TZPluginType type))progress
                      completion:(nullable void (^)(NSDictionary<NSNumber *,NSString *> * _Nonnull result, TZDownloadState state))completion
 {
-    TZPluginType pluginType = types.firstObject.pluginTypeValue;
-    [types removeObjectAtIndex:0];
-    [self clearPlugin:pluginType];
+    NSNumber *oneType = types.firstObject;
+    [types removeObject:oneType];
+//    [types removeObjectAtIndex:0];
 
-    [[objc_getClass("TKHTTPManager") shareManager] downloadWithUrlString:[self downloadURLStringFromType:pluginType] toDirectoryPah:NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).lastObject progress:^(NSProgress *downloadProgress)
-    {
-        if (progress) {
+    if (oneType) {
+        switch (oneType.pluginTypeValue) {
+            case TZPluginTypeWrapper:
+            {
+                [self downloadWrapperWithProgress:^(NSProgress *p) {
+                    if (progress) {
+                        TZInvokeBlockInMainThread(^{
+                            progress(p, TZPluginTypeWrapper);
+                        })
+                    }
+                } completion:^(NSString *filePath, NSError * _Nullable error) {
+                    if (error) {
+                        if (error.code == NSURLErrorCancelled) {
+                            self.downloadState = TZDownloadStateCancel;
+                            if (completion) {
+                                TZInvokeBlockInMainThread(^{
+                                    completion(self.result, TZDownloadStateCancel);
+                                })
+                            }
+                        } else {
+                            self.downloadState = TZDownloadStateError;
+                            if (completion) {
+                                TZInvokeBlockInMainThread(^{
+                                    completion(self.result, TZDownloadStateError);
+                                })
+                            }
+                        }
+                    } else {
+
+                        self.result[oneType] = filePath;
+
+                        if (types.count) {
+                            [self downloadPluginFromTypes:types progress:progress completion:completion];
+                        } else {
+                            self.downloadState = TZDownloadStateFinish;
+                            if (completion) {
+                                TZInvokeBlockInMainThread(^{
+                                    completion(self.result, TZDownloadStateFinish);
+                                })
+                            }
+                        }
+                    }
+                }];
+            }
+                break;
+            case TZPluginTypeTKkk:
+            {
+                [self downloadTKWithProgress:^(NSProgress *p) {
+                    if (progress) {
+                        TZInvokeBlockInMainThread(^{
+                            progress(p, TZPluginTypeTKkk);
+                        })
+                    }
+                } completion:^(NSString *filePath, NSError * _Nullable error) {
+                    if (error) {
+                        if (error.code == NSURLErrorCancelled) {
+                            self.downloadState = TZDownloadStateCancel;
+                            if (completion) {
+                                TZInvokeBlockInMainThread(^{
+                                    completion(self.result, TZDownloadStateCancel);
+                                })
+                            }
+                        } else {
+                            self.downloadState = TZDownloadStateError;
+                            if (completion) {
+                                TZInvokeBlockInMainThread(^{
+                                    completion(self.result, TZDownloadStateError);
+                                })
+                            }
+                        }
+                    } else {
+
+                        self.result[oneType] = filePath;
+
+                        if (types.count) {
+                            [self downloadPluginFromTypes:types progress:progress completion:completion];
+                        } else {
+                            self.downloadState = TZDownloadStateFinish;
+                            if (completion) {
+                                TZInvokeBlockInMainThread(^{
+                                    completion(self.result, TZDownloadStateFinish);
+                                })
+                            }
+                        }
+                    }
+                }];
+            }
+                break;
+            // @other plugin
+            default:
+                break;
+        }
+    } else {
+        self.downloadState = TZDownloadStateFinish;
+        if (completion) {
             TZInvokeBlockInMainThread(^{
-                progress(downloadProgress, pluginType);
+                completion(self.result, TZDownloadStateFinish);
             })
         }
-    } completionHandler:^(NSString *filePath, NSError * _Nullable error) {
+    }
+}
 
-        if (error) {
-            if (completion) {
-                TZInvokeBlockInMainThread(^{
-                    if (error.code == NSURLErrorCancelled) {
-                        completion(self.result, TZDownloadStateCancel);
-                    } else {
-                        completion(self.result, TZDownloadStateError);
-                    }
-                })
-            }
-        } else {
+- (void)downloadWrapperWithProgress:(nullable void (^)(NSProgress *progress))progress completion:(void (^)(NSString *filePath, NSError * _Nullable error))completion
+{
+    NSString *pluginPath = [NSString stringWithFormat:@"%@/WeChatPluginWrapperMac-master", NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).lastObject];
+    NSString *pluginZipPath = [NSString stringWithFormat:@"%@.zip", pluginPath];
 
-            self.result[@(pluginType)] = filePath;
+    NSFileManager *fileManager = NSFileManager.defaultManager;
+    [fileManager removeItemAtPath:pluginPath error:nil];
+    [fileManager removeItemAtPath:pluginZipPath error:nil];
 
-            if (types.count) {
-                [self downloadPluginFromTypes:types progress:progress completion:completion];
-            } else {
-                if (completion) {
-                    TZInvokeBlockInMainThread(^{
-                        completion(self.result, TZDownloadStateFinish);
-                    })
-                }
-            }
-        }
-    }];
+    [[objc_getClass("TKHTTPManager") shareManager] downloadWithUrlString:@"https://github.com/TozyZuo/WeChatPluginWrapperMac/archive/master.zip" toDirectoryPah:NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).lastObject progress:progress completionHandler:completion];
+}
+
+- (void)downloadTKWithProgress:(nullable void (^)(NSProgress *progress))progress completion:(void (^)(NSString *filePath, NSError * _Nullable error))completion
+{
+    [[objc_getClass("TKVersionManager") shareManager] downloadPluginProgress:progress completionHandler:completion];
 }
 
 - (void)setupInstallBtnTitle:(NSString *)text
@@ -161,39 +244,6 @@
     CGFloat stringWidth = [text widthWithFont:self.installButton.font];
     self.installButton.width = stringWidth + 40;
     self.installButton.x = 430 - stringWidth - 40;
-}
-
-- (void)clearPlugin:(TZPluginType)type
-{
-    NSString *pluginName = @"";
-    switch (type) {
-        case TZPluginTypeWrapper:
-            pluginName = @"WeChatPluginWrapperMac-master";
-            break;
-        case TZPluginTypeTKkk:
-            pluginName = @"WeChatPlugin-MacOS-master";
-            break;
-        default:
-            break;
-    }
-    NSString *pluginPath = [NSString stringWithFormat:@"%@/%@", NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).lastObject, pluginName];
-    NSString *pluginZipPath = [NSString stringWithFormat:@"%@.zip", pluginPath];
-
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    [fileManager removeItemAtPath:pluginPath error:nil];
-    [fileManager removeItemAtPath:pluginZipPath error:nil];
-}
-
-- (NSString *)downloadURLStringFromType:(TZPluginType)type
-{
-    switch (type) {
-        case TZPluginTypeWrapper:
-            return @"https://github.com/TozyZuo/WeChatPluginWrapperMac/archive/master.zip";
-        case TZPluginTypeTKkk:
-            return @"https://github.com/TKkk-iOSer/WeChatPlugin-MacOS/archive/master.zip";
-        default:
-            return nil;
-    }
 }
 
 #pragma mark - Public
@@ -216,12 +266,15 @@
         [self showWindow:self];
         [self.window center];
         [self.window makeKeyWindow];
+
+        [self downloadPlugin];
     }
 }
 
 - (void)cancel
 {
     [[objc_getClass("TKHTTPManager") shareManager] cancelDownload];
+//    [[objc_getClass("TKVersionManager") shareManager] cancelDownload];
 }
 
 @end

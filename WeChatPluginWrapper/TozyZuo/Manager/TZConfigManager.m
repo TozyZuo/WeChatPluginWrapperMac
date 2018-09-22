@@ -147,7 +147,10 @@ static NSString *TZUserDefaultsKeyPrefix;
              @"debugDescription",
              @"description",
              @"hash",
-             @"superclass",];
+             @"superclass",
+             @"localInfoPlist",
+             @"remoteInfoPlist",
+             ];
 }
 
 - (void)setNilValueForKey:(NSString *)key
@@ -256,6 +259,12 @@ static NSString *TZUserDefaultsKeyPrefix;
         selector = [NSStringFromSelector(propertySEL) stringByAppendingFormat:@"%@:", TZUserDefaultsKeyPrefix];
     }
     return NSSelectorFromString(selector);
+}
+
+- (void)clearCache
+{
+    self.remoteInfoPlist = nil;
+    self.localInfoPlist = nil;
 }
 
 @end

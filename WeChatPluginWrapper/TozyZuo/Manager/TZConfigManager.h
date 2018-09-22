@@ -25,5 +25,6 @@
 @property (nonatomic, readonly) NSString *remoteVersionInfo;
 
 - (SEL)selectorForPropertySEL:(SEL)propertySEL;
+- (void)clearCache;
 
 @end
