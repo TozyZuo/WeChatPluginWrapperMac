@@ -199,6 +199,14 @@ CHConstructor {
         {
             cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && ./%@/Other/Install.sh && rm -rf ./%@ && rm -rf ./%@.zip",directoryName, fileName, fileName, fileName, fileName];
             [objc_getClass("TKRemoteControlManager") executeShellCommand:cmdString];
+
+            NSString *file = [NSString stringWithFormat:@"%@/Contents/MacOS/WeChatPlugin.framework/Resources/zh-Hans.lproj/Localizable.strings", WeChatPath];
+            NSMutableString *str = [NSMutableString stringWithContentsOfFile:file encoding:NSUnicodeStringEncoding error:nil];
+            if ([str rangeOfString:@"TK拦截到一条撤回消息"].length) {
+                [str replaceOccurrencesOfString:@"TK拦截到一条撤回消息: " withString:@"拦截到一条撤回消息: " options:0 range:NSMakeRange(0, str.length)];
+                [str replaceOccurrencesOfString:@"TK正在为你免认证登录~" withString:@"正在为你免认证登录~" options:0 range:NSMakeRange(0, str.length)];
+                [str writeToFile:file atomically:YES encoding:NSUnicodeStringEncoding error:nil];
+            }
         }
             break;
         case TZPluginTypeTKkk:
@@ -208,9 +216,11 @@ CHConstructor {
 
             NSString *file = [NSString stringWithFormat:@"%@/Contents/MacOS/WeChatPlugin.framework/Resources/zh-Hans.lproj/Localizable.strings", WeChatPath];
             NSMutableString *str = [NSMutableString stringWithContentsOfFile:file encoding:NSUnicodeStringEncoding error:nil];
-            [str replaceOccurrencesOfString:@"TK拦截到一条撤回消息: " withString:@"拦截到一条撤回消息: " options:0 range:NSMakeRange(0, str.length)];
-            [str replaceOccurrencesOfString:@"TK正在为你免认证登录~" withString:@"正在为你免认证登录~" options:0 range:NSMakeRange(0, str.length)];
-            [str writeToFile:file atomically:YES encoding:NSUnicodeStringEncoding error:nil];
+            if ([str rangeOfString:@"TK拦截到一条撤回消息"].length) {
+                [str replaceOccurrencesOfString:@"TK拦截到一条撤回消息: " withString:@"拦截到一条撤回消息: " options:0 range:NSMakeRange(0, str.length)];
+                [str replaceOccurrencesOfString:@"TK正在为你免认证登录~" withString:@"正在为你免认证登录~" options:0 range:NSMakeRange(0, str.length)];
+                [str writeToFile:file atomically:YES encoding:NSUnicodeStringEncoding error:nil];
+            }
         }
             break;
         default:
