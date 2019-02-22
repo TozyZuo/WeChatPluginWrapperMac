@@ -172,9 +172,9 @@ CHConstructor {
     NSModalResponse respose = [alert runModal];
 
     if (respose == NSAlertFirstButtonReturn) {
-        NSMutableArray *t = types.mutableCopy;
-        [t addObjectsFromArray:t];
-        types = t;
+//        NSMutableArray *t = types.mutableCopy;
+//        [t addObjectsFromArray:t];
+//        types = t;
         [TZDownloadWindowController.sharedWindowController downloadWithPluginTypes:types quietly:NO completion:^(NSDictionary<NSNumber *,NSString *> * _Nonnull result, TZDownloadState state)
         {
             [result enumerateKeysAndObjectsUsingBlock:^(NSNumber * _Nonnull key, NSString * _Nonnull obj, BOOL * _Nonnull stop) {
@@ -197,30 +197,18 @@ CHConstructor {
     switch (type) {
         case TZPluginTypeWrapper:
         {
-            cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && ./%@/Other/Install.sh && rm -rf ./%@ && rm -rf ./%@.zip",directoryName, fileName, fileName, fileName, fileName];
+            cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && ./%@/Other/Install.sh && rm -rf ./%@ && rm -rf ./%@.zip", directoryName, fileName, fileName, fileName, fileName];
             [objc_getClass("TKRemoteControlManager") executeShellCommand:cmdString];
 
-            NSString *file = [NSString stringWithFormat:@"%@/Contents/MacOS/WeChatPlugin.framework/Resources/zh-Hans.lproj/Localizable.strings", WeChatPath];
-            NSMutableString *str = [NSMutableString stringWithContentsOfFile:file encoding:NSUnicodeStringEncoding error:nil];
-            if ([str rangeOfString:@"TK拦截到一条撤回消息"].length) {
-                [str replaceOccurrencesOfString:@"TK拦截到一条撤回消息: " withString:@"拦截到一条撤回消息: " options:0 range:NSMakeRange(0, str.length)];
-                [str replaceOccurrencesOfString:@"TK正在为你免认证登录~" withString:@"正在为你免认证登录~" options:0 range:NSMakeRange(0, str.length)];
-                [str writeToFile:file atomically:YES encoding:NSUnicodeStringEncoding error:nil];
-            }
+            [self deleteTKString];
         }
             break;
         case TZPluginTypeTKkk:
         {
-            cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && cp -r ./%@/Other/Products/Debug/WeChatPlugin.framework %@/Contents/MacOS/ && rm -rf ./%@ && rm -rf ./%@.zip &&",directoryName, fileName, fileName, WeChatPath, fileName, fileName];
+            cmdString = [NSString stringWithFormat:@"cd %@ && unzip -n %@.zip && cp -r ./%@/Other/Products/Debug/WeChatPlugin.framework %@/Contents/MacOS/ && rm -rf ./%@ && rm -rf ./%@.zip", directoryName, fileName, fileName, WeChatPath, fileName, fileName];
             [objc_getClass("TKRemoteControlManager") executeShellCommand:cmdString];
 
-            NSString *file = [NSString stringWithFormat:@"%@/Contents/MacOS/WeChatPlugin.framework/Resources/zh-Hans.lproj/Localizable.strings", WeChatPath];
-            NSMutableString *str = [NSMutableString stringWithContentsOfFile:file encoding:NSUnicodeStringEncoding error:nil];
-            if ([str rangeOfString:@"TK拦截到一条撤回消息"].length) {
-                [str replaceOccurrencesOfString:@"TK拦截到一条撤回消息: " withString:@"拦截到一条撤回消息: " options:0 range:NSMakeRange(0, str.length)];
-                [str replaceOccurrencesOfString:@"TK正在为你免认证登录~" withString:@"正在为你免认证登录~" options:0 range:NSMakeRange(0, str.length)];
-                [str writeToFile:file atomically:YES encoding:NSUnicodeStringEncoding error:nil];
-            }
+            [self deleteTKString];
         }
             break;
         default:
@@ -231,6 +219,18 @@ CHConstructor {
 - (void)restartWeChat
 {
     [objc_getClass("TKRemoteControlManager") executeShellCommand:[NSString stringWithFormat:@"killall WeChat && sleep 2s && open %@", NSBundle.mainBundle.bundlePath]];
+}
+
+- (void)deleteTKString
+{
+    NSString *WeChatPath = NSBundle.mainBundle.bundlePath;
+    NSString *file = [NSString stringWithFormat:@"%@/Contents/MacOS/WeChatPlugin.framework/Resources/zh-Hans.lproj/Localizable.strings", WeChatPath];
+    NSMutableString *str = [NSMutableString stringWithContentsOfFile:file encoding:NSUnicodeStringEncoding error:nil];
+    if ([str rangeOfString:@"TK拦截到一条撤回消息"].length) {
+        [str replaceOccurrencesOfString:@"TK拦截到一条撤回消息: " withString:@"拦截到一条撤回消息: " options:0 range:NSMakeRange(0, str.length)];
+        [str replaceOccurrencesOfString:@"TK正在为你免认证登录~" withString:@"正在为你免认证登录~" options:0 range:NSMakeRange(0, str.length)];
+        [str writeToFile:file atomically:YES encoding:NSUnicodeStringEncoding error:nil];
+    }
 }
 
 #pragma mark NSApplicationDelegate
