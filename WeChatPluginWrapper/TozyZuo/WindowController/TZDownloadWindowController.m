@@ -79,9 +79,17 @@
     self.titleLabel.stringValue = @"";
     [self setupInstallBtnTitle:@"取消"];
 
+    __block BOOL noCallBack = YES;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        if (noCallBack) {
+            self.titleLabel.stringValue = @"下载中，请稍后...";
+            self.progressView.hidden = YES;
+        }
+    });
     NSMutableSet *typeSet = [[NSMutableSet alloc] init];
     [self downloadPluginFromTypes:self.types.mutableCopy progress:^(NSProgress *downloadProgress, TZPluginType type)
     {
+        noCallBack = NO;
         self.progressView.minValue = 0;
         self.progressView.maxValue = downloadProgress.totalUnitCount / 1024.0;
         self.progressView.doubleValue = downloadProgress.completedUnitCount  / 1024.0;

@@ -25,7 +25,7 @@ curl -o- -L https://github.com/TozyZuo/WeChatPluginWrapperMac/raw/master/Other/U
 
 ## 目前已集成如下pod
 
-### TKkk-WeChatPlugin（v1.7.1）
+### TKkk-WeChatPlugin（v1.7.5）
 [详细功能请前往项目主页查看](https://github.com/TKkk-iOSer/WeChatPlugin-MacOS)
 
 
